@@ -9,7 +9,40 @@
 
 
 <ion-content padding>
-  <form #f="ngForm">
+
+  <ion-list *ngIf="!ui.displayForm">
+    <ion-item-sliding *ngFor="let ingredient of ingredients">
+      <button ion-item>{{ingredient.name}} | {{ingredient.amount}}</button>
+      <ion-item-options>
+          <button ion-button color="danger">
+            <ion-icon name="trash"></ion-icon>
+            Delete
+          </button>
+      </ion-item-options>
+    </ion-item-sliding>
+    <h4 *ngIf="ingredients.length==0">No items yet.</h4>
+  </ion-list>
+
+
+  <ion-fab top right edge>
+    <button (click)="ui.displayForm=true" ion-fab mini><ion-icon name="add"></ion-icon></button>
+  </ion-fab>
+<!--
+  <ion-list>
+    <ion-item-sliding *ngFor="let quote of quotes">
+      <ion-item (click)="viewQuote(quote)">
+        <h2>{{quote.person}}</h2>
+        <p>{{quote.text}}</p>
+      </ion-item>
+      <ion-item-options>
+        <button (click)="unfavoriteQuote(quote)" ion-button color="danger">Unfavorite</button>
+      </ion-item-options>
+    </ion-item-sliding>
+
+
+  </ion-list>-->
+
+  <form #f="ngForm" *ngIf="ui.displayForm">
     <ion-list>
       <ion-item>
         <ion-label fixed>Name</ion-label>
@@ -34,9 +67,13 @@
       (click)="addIngredient()"
       [disabled]="!f.valid"
       ion-button
-      type="submit"
-      block>
+      type="submit">
       Add
+    </button>
+    <button
+      (click)="ui.displayForm=false"
+      ion-button>
+      Show List
     </button>
   </form>
 </ion-content>

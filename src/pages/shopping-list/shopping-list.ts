@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {Ingredient} from "../../models/ingradient";
 import {ShoppingListService} from "../../services/shopping-list-service";
+import {ToastController} from "ionic-angular";
 
 
 @Component({
@@ -9,15 +10,51 @@ import {ShoppingListService} from "../../services/shopping-list-service";
 })
 export class ShoppingListPage {
 
-  ingredient:Ingredient;
+  ui = {
+    displayForm:false
+  };
 
-  constructor(private shoppingListSrv:ShoppingListService){
-    this.ingredient = shoppingListSrv.getNewIngredient();
+  ingredient:Ingredient = this.shoppingListSrv.getNewIngredient();
+  ingredients:Ingredient[] = [];
+
+  constructor(private shoppingListSrv:ShoppingListService, private toastCtrl:ToastController){
+
+  }
+
+  ionViewWillEnter(){
+    this.loadIngredients();
+  }
+
+  loadIngredients(){
+    this.ingredients = this.shoppingListSrv.getIngredients();
   }
 
   addIngredient(){
-    this.shoppingListSrv.addIngredient(this.ingredient);
-    this.ingredient = this.shoppingListSrv.getNewIngredient();
+    let result:boolean = this.shoppingListSrv.addIngredient(this.ingredient);
+
+    let message = {
+      text:'',
+      class:''
+    };
+
+    if(result){
+      this.ingredient = this.shoppingListSrv.getNewIngredient();
+      this.loadIngredients(); //reloads the list to show the update
+
+      message.text = 'Ingredient added';
+      message.class = 'toast_success';
+    }
+    else{
+      message.text = 'Ingredient is already available in the list';
+      message.class = 'toast_warn';
+    }
+
+   this.toastCtrl.create({
+       message: message.text,
+       duration: 3000,
+       position: 'top',
+       cssClass:message.class
+   }).present();
   }
 
 }

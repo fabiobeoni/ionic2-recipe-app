@@ -76,3 +76,15 @@ $colors: (
 
 @import "roboto";
 @import "noto-sans";
+
+
+//CUSTOM
+//---------------------------------------------------
+
+.toast_success > div {
+    background-color: green !important;
+}
+
+.toast_warn > div {
+    background-color: orange !important;
+}
