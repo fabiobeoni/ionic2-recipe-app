@@ -2,7 +2,7 @@ import {Ingredient} from "../models/ingradient";
 
 export class ShoppingListService{
 
-  private ingredients:Ingredient[] = [];
+  private ingredients:any[] = [];
 
   getIngredients():Ingredient[]{
     return this.ingredients.slice();
