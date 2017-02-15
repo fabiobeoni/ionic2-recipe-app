@@ -57,4 +57,9 @@ export class ShoppingListPage {
    }).present();
   }
 
+  removeIngredient(ingredient:Ingredient){
+    this.shoppingListSrv.removeIngredient(ingredient);
+    this.loadIngredients();
+  }
+
 }

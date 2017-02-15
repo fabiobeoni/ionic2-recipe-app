@@ -13,7 +13,7 @@ export class ShoppingListService{
   }
 
   getIngredientIndex(ingredient:Ingredient):number{
-    return this.ingredients.findIndex(o=>o==ingredient);
+    return this.ingredients.findIndex(o=>o.name==ingredient.name);
   }
 
   /**
@@ -37,7 +37,8 @@ export class ShoppingListService{
   }
 
   removeIngredient(ingredient:Ingredient){
-    this.ingredients.slice(this.getIngredientIndex(ingredient),1);
+    let index = this.getIngredientIndex(ingredient);
+    this.ingredients.splice(index,1);
   }
 
 }
