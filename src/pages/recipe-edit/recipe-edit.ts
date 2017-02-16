@@ -1,22 +1,83 @@
-import { Component } from '@angular/core';
-import { NavController, NavParams } from 'ionic-angular';
+import {Component, OnInit} from '@angular/core';
+import {NavParams, ActionSheetController, AlertController} from 'ionic-angular';
+import {Ingredient} from "../../models/ingradient";
 
-/*
-  Generated class for the RecipeEdit page.
-
-  See http://ionicframework.com/docs/v2/components/#navigation for more info on
-  Ionic pages and navigation.
-*/
 @Component({
   selector: 'page-recipe-edit',
   templateUrl: 'recipe-edit.html'
 })
-export class RecipeEditPage {
+export class RecipeEditPage implements OnInit {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {}
+  public static Modes = {
+    EDIT:'Edit',
+    ADD:'New'
+  };
 
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad RecipeEditPage');
+  mode = RecipeEditPage.Modes.ADD;
+
+  options:string[]= ['Easy','Medium','Difficult'];
+
+  ingredients:string[] = [];
+
+  constructor(
+    public navParams: NavParams,
+    private actionSheetCtrl:ActionSheetController,
+    private alertCtrl:AlertController
+  ) {}
+
+  ngOnInit(){
+    this.mode = this.navParams.data;
+  }
+
+  manageIngredients(){
+    const actSheet = this.actionSheetCtrl.create({
+      title:'Select',
+      buttons:[
+        {
+          text:'Add Ingredient',
+          handler:()=>{}
+        },
+        {
+          text:'Remove all Ingredients',
+          role:'destructive',
+          handler:()=>{}
+        },
+        {
+          text:'Cancel',
+          role:'cancel',
+          handler:()=>{}
+        },
+      ]
+    });
+
+    actSheet.present();
+  }
+
+  createNewIngredientAlert(){
+    const ingredientAlert = this.alertCtrl.create({
+      title:'Add Ingredient',
+      inputs:[
+        {
+          name:'name',
+          placeholder:'Name'
+        }
+      ],
+      buttons:[
+        {
+          text:'Cancel',
+          role:'cancel'
+        },
+        {
+          text:'Add',
+          handler: data => {
+            if(!data.name && data.name.trim()!='')
+               this.ingredients.push(data.name);
+            else
+              alert('Error');
+          }
+        }
+      ]
+    });
   }
 
 }

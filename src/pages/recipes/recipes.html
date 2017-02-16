@@ -7,7 +7,14 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>recipes</ion-title>
+    <ion-title>Recipes</ion-title>
+    <ion-buttons end>
+      <button ion-button icon-only
+              [navPush]="recipeEditPage"
+              [navParams]="recipeEditPage.Modes.ADD">
+        <ion-icon name="add"></ion-icon>
+      </button>
+    </ion-buttons>
   </ion-navbar>
 
 </ion-header>
