@@ -32,7 +32,7 @@
     </ion-list>
     <button
       (click)="addIngredient()"
-      [disabled]="!f.valid"
+      [disabled]="!ingredient.isValid()"
       ion-button
       type="submit">
       Add

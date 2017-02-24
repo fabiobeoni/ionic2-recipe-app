@@ -28,7 +28,12 @@ $colors: (
   secondary:  #32db64,
   danger:     #f53d3d,
   light:      #f4f4f4,
-  dark:       #222
+  dark:       #222,
+  field_helper_message: #b2b2b2
+);
+
+$text_sizes:(
+  field_helper_message:'10px'
 );
 
 
@@ -87,4 +92,9 @@ $colors: (
 
 .toast_warn > div {
     background-color: orange !important;
+}
+
+.field_helper {
+  color: map-get($colors, field_helper_message);
+  font-size: map-get($text_sizes, field_helper_message);
 }

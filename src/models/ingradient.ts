@@ -1,4 +1,16 @@
 export class Ingredient{
+
+  static factory():Ingredient{
+    return new Ingredient();
+  }
+
+  isValid():boolean{
+    return (
+      this.name!=null && this.name.trim().length>0 &&
+        this.amount!=null && this.amount > 0
+    );
+  }
+
   get name(): string {
     return this._name;
   }
@@ -17,9 +29,5 @@ export class Ingredient{
 
   private _name:string;
   private _amount:number;
-
-  static factory():Ingredient{
-    return new Ingredient();
-  }
 
 }

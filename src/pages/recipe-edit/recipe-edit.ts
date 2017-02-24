@@ -1,6 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {NavParams, ActionSheetController, AlertController} from 'ionic-angular';
-import {Ingredient} from "../../models/ingradient";
+import {Difficulties} from "../../models/recipe-difficulties";
+import {RecipeService} from "../../services/recipe-service";
+import {Recipe} from "../../models/recipe";
+import {ModelValidationService} from "../../services/model-validation-service";
 
 @Component({
   selector: 'page-recipe-edit',
@@ -15,18 +18,47 @@ export class RecipeEditPage implements OnInit {
 
   mode = RecipeEditPage.Modes.ADD;
 
-  options:string[]= ['Easy','Medium','Difficult'];
+  options:any[]= [
+    {
+      label:'Easy',
+      value:Difficulties.EASY
+    },
+    {
+      label:'Medium',
+      value:Difficulties.MEDIUM
+    },
+    {
+      label:'Difficult',
+      value:Difficulties.DIFFICULT
+    }
+  ];
 
-  ingredients:string[] = [];
+  recipe:Recipe;
+
+  //TODO: replace with real Ingredient object
+  ingredients:string[];
 
   constructor(
     public navParams: NavParams,
     private actionSheetCtrl:ActionSheetController,
-    private alertCtrl:AlertController
+    private alertCtrl:AlertController,
+    private recipeSrv:RecipeService,
+    public validator:ModelValidationService //used in view
   ) {}
 
   ngOnInit(){
     this.mode = this.navParams.data;
+    this.recipe = this.recipeSrv.getNewRecipe();
+    this.ingredients = [];
+  }
+
+  save(){
+    //TODO: store on service
+    console.log(this.recipe.toString());
+  }
+
+  onIngredientNameChange(event,i){
+    this.ingredients[i] = event.target.value;
   }
 
   manageIngredients(){
@@ -35,12 +67,14 @@ export class RecipeEditPage implements OnInit {
       buttons:[
         {
           text:'Add Ingredient',
-          handler:()=>{}
+          handler:()=>{
+            this.createNewIngredientAlert().present();
+          }
         },
         {
           text:'Remove all Ingredients',
           role:'destructive',
-          handler:()=>{}
+          handler:()=>{this.ingredients = [];}
         },
         {
           text:'Cancel',
@@ -54,8 +88,9 @@ export class RecipeEditPage implements OnInit {
   }
 
   createNewIngredientAlert(){
+    let _this = this;
     const ingredientAlert = this.alertCtrl.create({
-      title:'Add Ingredient',
+      title:'Ingredients',
       inputs:[
         {
           name:'name',
@@ -70,14 +105,26 @@ export class RecipeEditPage implements OnInit {
         {
           text:'Add',
           handler: data => {
-            if(!data.name && data.name.trim()!='')
-               this.ingredients.push(data.name);
-            else
-              alert('Error');
+            if(data.name && data.name.trim()!=''){
+              let found = _this.ingredients.find(o=>o==data.name);
+              if(!found)
+                _this.ingredients.push(data.name);
+              else{
+                ingredientAlert.setSubTitle('Ingredient is already added.');
+                return false;
+              }
+            }
+            else{
+              ingredientAlert.setSubTitle('Please provide an ingredient name');
+              return false;
+            }
+
           }
         }
       ]
     });
+
+    return ingredientAlert;
   }
 
 }

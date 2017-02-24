@@ -8,31 +8,41 @@
 
 
 <ion-content padding>
-  <form>
+  <form #f="ngForm">
     <ion-list>
       <ion-item>
         <ion-label floating>Title</ion-label>
-        <ion-input type="text"></ion-input>
+        <ion-input [(ngModel)]="recipe.title" name="title" type="text"></ion-input>
+      </ion-item>
+      <ion-item no-lines>
+        {{validator.errorMessage('title')}}
       </ion-item>
       <ion-item>
         <ion-label floating>Description</ion-label>
-        <ion-textarea></ion-textarea>
+        <ion-textarea [(ngModel)]="recipe.description" name="description"></ion-textarea>
+        <span class="field_helper"></span>
       </ion-item>
       <ion-item>
         <ion-label floating>Difficulty</ion-label>
-        <ion-select>
-          <ion-option *ngFor="let option of options" [value]="option">{{option}}</ion-option>
+        <ion-select  [(ngModel)]="recipe.difficulty" name="difficulty">
+          <ion-option *ngFor="let option of options" [value]="option.value">
+            {{option.label}}
+          </ion-option>
         </ion-select>
       </ion-item>
     </ion-list>
+
     <button (click)="manageIngredients()" ion-button clear>Manage Ingredients</button>
-    <ion-list>
-      <ion-item>
-        <ion-label>Name</ion-label>
-        <ion-input type="text"></ion-input>
+
+    <ion-list *ngIf="ingredients.length>0">
+      <ion-item *ngFor="let ingredient of ingredients; let i =index">
+        <ion-input type="text" value="{{ingredient}}" (change)="onIngredientNameChange($event,i)"></ion-input>
       </ion-item>
     </ion-list>
-    <button ion-button type="submit">Save</button>
+
+    <button (click)="save()" ion-button type="submit" block>Save</button>
+
 
   </form>
+
 </ion-content>
