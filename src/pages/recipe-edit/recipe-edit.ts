@@ -1,9 +1,12 @@
 import {Component, OnInit} from '@angular/core';
-import {NavParams, ActionSheetController, AlertController} from 'ionic-angular';
+import {NavParams, ActionSheetController, AlertController, ToastController} from 'ionic-angular';
 import {Difficulties} from "../../models/recipe-difficulties";
 import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {ModelValidationService} from "../../services/model-validation-service";
+import {Ingredient} from "../../models/ingradient";
+import {ValidationErrorInterface} from "validator.ts/ValidationErrorInterface";
+import {ValidationError} from "class-validator";
 
 @Component({
   selector: 'page-recipe-edit',
@@ -34,14 +37,13 @@ export class RecipeEditPage implements OnInit {
   ];
 
   recipe:Recipe;
-
-  //TODO: replace with real Ingredient object
-  ingredients:string[];
+  ingredients:Ingredient[];
 
   constructor(
     public navParams: NavParams,
     private actionSheetCtrl:ActionSheetController,
     private alertCtrl:AlertController,
+    private toastCtrl: ToastController,
     private recipeSrv:RecipeService,
     public validator:ModelValidationService //used in view
   ) {}
@@ -53,15 +55,24 @@ export class RecipeEditPage implements OnInit {
   }
 
   save(){
+    this.validator.validate(this.recipe);
     //TODO: store on service
     console.log(this.recipe.toString());
   }
 
-  onIngredientNameChange(event,i){
-    this.ingredients[i] = event.target.value;
+  onIngredientChange(event,i){
+    debugger;
+    let updatedIngredient:Ingredient = this.ingredients[i];
+    this.validator.validate(updatedIngredient);
+    if(this.validator.errors.length>0){
+      this.toastCtrl.create({
+        message:this.validator.errorsToString(),
+        duration: 5000
+      }).present();
+    }
   }
 
-  manageIngredients(){
+  displayIngredientMenu(){
     const actSheet = this.actionSheetCtrl.create({
       title:'Select',
       buttons:[
@@ -95,6 +106,11 @@ export class RecipeEditPage implements OnInit {
         {
           name:'name',
           placeholder:'Name'
+        },
+        {
+          name:'amount',
+          placeholder:'Amount',
+          type:'number'
         }
       ],
       buttons:[
@@ -105,26 +121,33 @@ export class RecipeEditPage implements OnInit {
         {
           text:'Add',
           handler: data => {
-            if(data.name && data.name.trim()!=''){
-              let found = _this.ingredients.find(o=>o==data.name);
-              if(!found)
-                _this.ingredients.push(data.name);
-              else{
-                ingredientAlert.setSubTitle('Ingredient is already added.');
-                return false;
-              }
-            }
-            else{
-              ingredientAlert.setSubTitle('Please provide an ingredient name');
-              return false;
-            }
-
+            return _this.addIngredient(data.name,parseInt(data.amount),ingredientAlert);
           }
         }
       ]
     });
 
     return ingredientAlert;
+  }
+
+  private addIngredient(name,amount,alert):boolean {
+    let newIngredient:Ingredient = Ingredient.factory(name,amount);
+    this.validator.validate(newIngredient);
+
+    if(this.validator.errors.length>0){
+      alert.setSubTitle(this.validator.errorsToString());
+      return false;
+    }
+
+    let found = this.ingredients.find(o=>o.name==name);
+      if(!found)
+        this.ingredients.push(newIngredient);
+      else{
+        alert.setSubTitle('Ingredient is already available in the list.');
+        return false;
+      }
+
+    return true;
   }
 
 }

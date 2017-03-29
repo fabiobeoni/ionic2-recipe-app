@@ -1,33 +1,22 @@
+
+import {IsInt, IsPositive, IsString, Length} from "class-validator";
+
 export class Ingredient{
 
-  static factory():Ingredient{
-    return new Ingredient();
+  static factory(name:string,amount:number):Ingredient{
+    return new Ingredient(name,amount);
   }
 
-  isValid():boolean{
-    return (
-      this.name!=null && this.name.trim().length>0 &&
-        this.amount!=null && this.amount > 0
-    );
+  constructor(_name:string,_amount:number){
+    this.name = _name;
+    this.amount = _amount;
   }
 
-  get name(): string {
-    return this._name;
-  }
+  @IsString()
+  @Length(1,100)
+  name:string;
 
-  set name(value: string) {
-    this._name = value;
-  }
-
-  get amount(): number {
-    return this._amount;
-  }
-
-  set amount(value: number) {
-    this._amount = value;
-  }
-
-  private _name:string;
-  private _amount:number;
-
+  @IsInt()
+  @IsPositive()
+  amount:number;
 }

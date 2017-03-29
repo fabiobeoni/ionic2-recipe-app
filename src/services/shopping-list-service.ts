@@ -9,7 +9,7 @@ export class ShoppingListService{
   }
 
   getNewIngredient():Ingredient{
-    return Ingredient.factory();
+    return Ingredient.factory(null,null);
   }
 
   getIngredientIndex(ingredient:Ingredient):number{

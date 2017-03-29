@@ -1,13 +1,13 @@
-import {ValidationErrorInterface} from "validator.ts/ValidationErrorInterface";
-import {Validator} from "validator.ts/Validator";
+
+import {ValidationError, Validator} from "class-validator";
 
 export class ModelValidationService{
 
   private _validator:Validator;
   private _skipMissingProperties:true;
-  private _errors:ValidationErrorInterface[]=[];
+  private _errors:ValidationError[]=[];
 
-  get errors(): ValidationErrorInterface[] {
+  get errors(): ValidationError[] {
     return this._errors;
   }
 
@@ -23,22 +23,34 @@ export class ModelValidationService{
     this._validator =  new Validator();
   }
 
-  sanitizeAndValidate(model:Object):ValidationErrorInterface[]{
-    this._errors =  this._validator.sanitizeAndValidate(model, { skipMissingProperties: this._skipMissingProperties });
-    return this._errors;
+  validate(model:Object):void{
+    this._validator.validate(model, { skipMissingProperties: this._skipMissingProperties })
+      .then(errors=>{
+        this._errors = errors;
+      });
   }
 
   isValid(model:Object):boolean{
-   this._errors = this._validator.validate(model,{ skipMissingProperties: this._skipMissingProperties });
-   return (this._errors.length>0);
+    this.validate(model);
+    return (this._errors.length==0);
   }
 
-  errorMessage(field:string):string{
+  fieldErrors(field:string):string[]{
+    let messages:string[]=[];
     let _error = this._errors.find(o=>o.property.toLowerCase()==field.toLowerCase());
-    let message = '';
     if(_error)
-      message = _error.errorMessage;
+      for(let msg in _error.constraints)
+        messages.push(msg);
 
-    return message
+    return messages
+  }
+
+  errorsToString():string{
+    let messages:string[]=[];
+    for(let error of this.errors)
+      for(let constrain in error.constraints)
+        messages.push(error.constraints[constrain]);
+
+    return messages.join('\n');
   }
 }
