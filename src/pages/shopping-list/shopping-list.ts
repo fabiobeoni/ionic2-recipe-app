@@ -18,7 +18,7 @@ export class ShoppingListPage {
   ingredients:Ingredient[] = [];
 
   constructor(private shoppingListSrv:ShoppingListService, private toastCtrl:ToastController){
-
+    console.log("Shopping list loaded...");
   }
 
   ionViewWillEnter(){

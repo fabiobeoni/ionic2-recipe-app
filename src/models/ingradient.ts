@@ -1,5 +1,5 @@
 
-import {IsInt, IsPositive, IsString, Length} from "class-validator";
+import {IsPositive, IsString, Length} from "class-validator";
 
 export class Ingredient{
 
@@ -12,11 +12,9 @@ export class Ingredient{
     this.amount = _amount;
   }
 
-  @IsString()
-  @Length(1,100)
+  @Length(1,100,{message:'"Name" is invalid (1 to 100 digits)'})
   name:string;
 
-  @IsInt()
-  @IsPositive()
+  @IsPositive({message:'"Amount" is invalid (>0)'})
   amount:number;
 }

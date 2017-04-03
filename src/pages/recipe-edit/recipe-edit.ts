@@ -1,12 +1,11 @@
 import {Component, OnInit} from '@angular/core';
-import {NavParams, ActionSheetController, AlertController, ToastController} from 'ionic-angular';
+import {NavParams, ActionSheetController, AlertController, ToastController, Alert} from 'ionic-angular';
 import {Difficulties} from "../../models/recipe-difficulties";
 import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {ModelValidationService} from "../../services/model-validation-service";
 import {Ingredient} from "../../models/ingradient";
 import {ValidationErrorInterface} from "validator.ts/ValidationErrorInterface";
-import {ValidationError} from "class-validator";
 
 @Component({
   selector: 'page-recipe-edit',
@@ -14,7 +13,7 @@ import {ValidationError} from "class-validator";
 })
 export class RecipeEditPage implements OnInit {
 
-  public static Modes = {
+  static Modes = {
     EDIT:'Edit',
     ADD:'New'
   };
@@ -37,7 +36,8 @@ export class RecipeEditPage implements OnInit {
   ];
 
   recipe:Recipe;
-  ingredients:Ingredient[];
+
+  private ingredientsAlert:Alert;
 
   constructor(
     public navParams: NavParams,
@@ -45,62 +45,68 @@ export class RecipeEditPage implements OnInit {
     private alertCtrl:AlertController,
     private toastCtrl: ToastController,
     private recipeSrv:RecipeService,
-    public validator:ModelValidationService //used in view
+    public validator:ModelValidationService
   ) {}
 
   ngOnInit(){
     this.mode = this.navParams.data;
     this.recipe = this.recipeSrv.getNewRecipe();
-    this.ingredients = [];
   }
 
   save(){
-    this.validator.validate(this.recipe);
-    //TODO: store on service
-    console.log(this.recipe.toString());
-  }
+    let self = this;
+    this.validator.validate(this.recipe,(isValid:boolean)=> {
+      if(isValid)
+      {
+        let message:string = '';
+        if(self.mode==RecipeEditPage.Modes.ADD)
+          this.recipeSrv.addRecipe(this.recipe,(added:boolean)=>{
+            if(added) message = 'Recipe saved';
+            else message = 'Error adding recipe';
 
-  onIngredientChange(event,i){
-    debugger;
-    let updatedIngredient:Ingredient = this.ingredients[i];
-    this.validator.validate(updatedIngredient);
-    if(this.validator.errors.length>0){
-      this.toastCtrl.create({
-        message:this.validator.errorsToString(),
-        duration: 5000
-      }).present();
-    }
+            this.toastCtrl.create({
+              message:message,
+              duration:5000
+            }).present();
+          });
+        else{
+          //TODO: implement...
+          this.toastCtrl.create({
+            message:message,
+            duration:5000
+          }).present();
+        }
+      }
+
+    });
   }
 
   displayIngredientMenu(){
-    const actSheet = this.actionSheetCtrl.create({
+    let actionSheet = this.actionSheetCtrl.create({
       title:'Select',
       buttons:[
         {
           text:'Add Ingredient',
-          handler:()=>{
-            this.createNewIngredientAlert().present();
-          }
+          handler:()=>{this.displayIngredientAlert();}
         },
         {
           text:'Remove all Ingredients',
           role:'destructive',
-          handler:()=>{this.ingredients = [];}
+          handler:()=>{this.displayDeleteConfirmAlert();}
         },
         {
           text:'Cancel',
           role:'cancel',
-          handler:()=>{}
+          handler:()=>{actionSheet.dismiss();}
         },
       ]
     });
-
-    actSheet.present();
+    actionSheet.present();
   }
 
-  createNewIngredientAlert(){
+  displayIngredientAlert(){
     let _this = this;
-    const ingredientAlert = this.alertCtrl.create({
+    this.ingredientsAlert = this.alertCtrl.create({
       title:'Ingredients',
       inputs:[
         {
@@ -121,33 +127,61 @@ export class RecipeEditPage implements OnInit {
         {
           text:'Add',
           handler: data => {
-            return _this.addIngredient(data.name,parseInt(data.amount),ingredientAlert);
+            _this.addIngredient(data.name,parseInt(data.amount));
+            return false;
           }
         }
       ]
     });
 
-    return ingredientAlert;
+    this.ingredientsAlert.present();
   }
 
-  private addIngredient(name,amount,alert):boolean {
+  displayDeleteConfirmAlert(){
+    let confirm = this.alertCtrl.create({
+      title: 'Please confirm deleting',
+      message: 'Do you really want to delete all ingredients? Action cannot be un-do.',
+      buttons: [
+        {
+          text: 'Cancel',
+          handler: () => { confirm.dismiss(); }
+        },
+        {
+          text: 'Yes, delete',
+          handler: () => {this.deleteAllIngredients();}
+        }
+      ]
+    });
+    confirm.present();
+  }
+
+  private addIngredient(name,amount):void {
+    let count:number = this.recipe.ingredients.length;
     let newIngredient:Ingredient = Ingredient.factory(name,amount);
-    this.validator.validate(newIngredient);
 
-    if(this.validator.errors.length>0){
-      alert.setSubTitle(this.validator.errorsToString());
-      return false;
-    }
-
-    let found = this.ingredients.find(o=>o.name==name);
-      if(!found)
-        this.ingredients.push(newIngredient);
-      else{
-        alert.setSubTitle('Ingredient is already available in the list.');
-        return false;
+    this.validator.validate(newIngredient,(isValid:boolean)=>{
+      if(isValid){
+        let found = this.recipe.ingredients.find(o=>o.name==name);
+        if(!found)
+          this.recipe.ingredients.push(newIngredient);
+        else
+          this.ingredientsAlert.setSubTitle('Ingredient is already available in the list.');
       }
+      else
+        this.ingredientsAlert.setSubTitle(this.validator.errorsToString());
 
-    return true;
+      if(count<this.recipe.ingredients.length)
+        this.ingredientsAlert.dismiss();
+    });
+  }
+
+  private deleteAllIngredients():void{
+    this.recipe.ingredients = [];
+
+    this.toastCtrl.create({
+      message:'All recipes deleted',
+      duration:3000
+    }).present();
   }
 
 }
