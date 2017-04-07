@@ -1,11 +1,12 @@
 import {Component, OnInit} from '@angular/core';
-import {NavParams, ActionSheetController, AlertController, ToastController, Alert} from 'ionic-angular';
+import {NavParams, ActionSheetController, AlertController, ToastController, Alert, NavController} from 'ionic-angular';
 import {Difficulties} from "../../models/recipe-difficulties";
 import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {ModelValidationService} from "../../services/model-validation-service";
 import {Ingredient} from "../../models/ingradient";
 import {ValidationErrorInterface} from "validator.ts/ValidationErrorInterface";
+import {ToastCtrl} from "../../utils/toast-ctrl";
 
 @Component({
   selector: 'page-recipe-edit',
@@ -41,43 +42,53 @@ export class RecipeEditPage implements OnInit {
 
   constructor(
     public navParams: NavParams,
+    private navCtrl:NavController,
     private actionSheetCtrl:ActionSheetController,
     private alertCtrl:AlertController,
-    private toastCtrl: ToastController,
+    private toastCtrl: ToastCtrl,
     private recipeSrv:RecipeService,
     public validator:ModelValidationService
   ) {}
 
   ngOnInit(){
-    this.mode = this.navParams.data;
-    this.recipe = this.recipeSrv.getNewRecipe();
+    if(this.navParams.data.recipe){
+      this.mode = RecipeEditPage.Modes.EDIT;
+      this.recipe = this.navParams.data.recipe;
+    }
+    else{
+      this.mode = RecipeEditPage.Modes.ADD;
+      this.recipe = this.recipeSrv.getNewRecipe();
+    }
   }
 
   save(){
-    let self = this;
     this.validator.validate(this.recipe,(isValid:boolean)=> {
       if(isValid)
       {
         let message:string = '';
-        if(self.mode==RecipeEditPage.Modes.ADD)
-          this.recipeSrv.addRecipe(this.recipe,(added:boolean)=>{
-            if(added) message = 'Recipe saved';
-            else message = 'Error adding recipe';
+        if(this.mode==RecipeEditPage.Modes.ADD)
+          this.recipeSrv.addRecipe(this.recipe,(err:Error)=>{
+            if(!err) message = 'Recipe saved';
+            else message = err.message;
 
-            this.toastCtrl.create({
-              message:message,
-              duration:5000
-            }).present();
+            this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
+            this.navCtrl.pop();
           });
         else{
           //TODO: implement...
-          this.toastCtrl.create({
-            message:message,
-            duration:5000
-          }).present();
+          this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
         }
       }
 
+    });
+  }
+
+  removeRecipe():void{
+    this.recipeSrv.removeRecipe(this.recipe,(err:Error)=>{
+      if(err)
+        this.toastCtrl.info(err.message,ToastCtrl.LENGTH_MEDIUM);
+      else
+        this.navCtrl.pop();
     });
   }
 
@@ -105,7 +116,6 @@ export class RecipeEditPage implements OnInit {
   }
 
   displayIngredientAlert(){
-    let _this = this;
     this.ingredientsAlert = this.alertCtrl.create({
       title:'Ingredients',
       inputs:[
@@ -127,7 +137,7 @@ export class RecipeEditPage implements OnInit {
         {
           text:'Add',
           handler: data => {
-            _this.addIngredient(data.name,parseInt(data.amount));
+            this.addIngredient(data.name,parseInt(data.amount));
             return false;
           }
         }
@@ -177,11 +187,7 @@ export class RecipeEditPage implements OnInit {
 
   private deleteAllIngredients():void{
     this.recipe.ingredients = [];
-
-    this.toastCtrl.create({
-      message:'All recipes deleted',
-      duration:3000
-    }).present();
+    this.toastCtrl.info('All ingredients deleted',ToastCtrl.LENGTH_SHORT);
   }
 
 }

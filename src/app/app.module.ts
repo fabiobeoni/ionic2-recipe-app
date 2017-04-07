@@ -9,6 +9,7 @@ import {ShoppingListPage} from "../pages/shopping-list/shopping-list";
 import {ShoppingListService} from "../services/shopping-list-service";
 import {RecipeService} from "../services/recipe-service";
 import {ModelValidationService} from "../services/model-validation-service";
+import {ToastCtrl} from "../utils/toast-ctrl";
 
 @NgModule({
   declarations: [
@@ -33,7 +34,9 @@ import {ModelValidationService} from "../services/model-validation-service";
   ],
   providers: [
     {provide: ErrorHandler, useClass: IonicErrorHandler},
-    ShoppingListService, RecipeService, ModelValidationService
+    ShoppingListService, RecipeService, ModelValidationService, ToastCtrl
   ]
 })
-export class AppModule {}
+export class AppModule {
+  public static readonly DB_NAME = 'recipes-db';
+}

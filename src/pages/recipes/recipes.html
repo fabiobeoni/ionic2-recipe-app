@@ -10,8 +10,7 @@
     <ion-title>Recipes</ion-title>
     <ion-buttons end>
       <button ion-button icon-only
-              [navPush]="recipeEditPage"
-              [navParams]="recipeEditPage.Modes.ADD">
+              [navPush]="recipeEditPage">
         <ion-icon name="add"></ion-icon>
       </button>
     </ion-buttons>
@@ -21,5 +20,11 @@
 
 
 <ion-content padding>
-
+    <ion-list>
+      <ion-item *ngFor="let recipe of recipes"
+                [navPush]="recipeEditPage"
+                [navParams]="{recipe:recipe}">
+        {{recipe.title}}
+      </ion-item>
+    </ion-list>
 </ion-content>

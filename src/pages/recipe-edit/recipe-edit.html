@@ -2,6 +2,12 @@
 
   <ion-navbar>
     <ion-title>{{mode}} Recipe</ion-title>
+    <ion-buttons end>
+      <button ion-button icon-only
+              (click)="removeRecipe()">
+        <ion-icon name="trash"></ion-icon>
+      </button>
+    </ion-buttons>
   </ion-navbar>
 
 </ion-header>

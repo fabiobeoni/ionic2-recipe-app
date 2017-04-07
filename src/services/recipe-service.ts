@@ -1,5 +1,7 @@
 import {Recipe} from "../models/recipe";
 import {Storage} from '@ionic/storage';
+import {AppModule} from "../app/app.module";
+
 
 export class RecipeService{
 
@@ -9,20 +11,19 @@ export class RecipeService{
   private storage:Storage;
 
   constructor(){
-    this.storage = new Storage({name:'dbname'});
+    this.storage = new Storage({name:AppModule.DB_NAME});
   }
 
-  getRecipes(callback:(recipes:Recipe[])=>void):void{
-    let self = this;
+  getRecipes(callback:(recipes:Recipe[],err:Error)=>void):void{
     this.storage.get(this.RECIPES_KEY)
       .then(data => {
-        if(data) self.recipes = data;
+        if(data) this.recipes = data;
 
-        callback(self.recipes.slice());
+        callback(this.recipes.slice(),null);
       })
       .catch(err=>{
         console.error(err);
-        callback(self.recipes.slice());
+        callback(this.recipes.slice(),err);
       });
   }
 
@@ -30,33 +31,38 @@ export class RecipeService{
     return Recipe.factory();
   }
 
-  addRecipe(recipe:Recipe,callback:(result:boolean)=>void):void {
-    let self = this;
+  addRecipe(recipe:Recipe,callback:(err:Error)=>void):void {
     let exists = this.recipes.find(o=>o.title.trim().toLocaleLowerCase()==recipe.title.trim().toLocaleLowerCase());
     if(!exists){
       this.recipes.push(recipe);
-      this.save(saved=>{
-        if(!saved) //rollback locally
-          self.recipes.splice(self.recipes.indexOf(recipe),1);
+      this.save(err=>{
+        if(err) //rollback locally
+          this.recipes.splice(this.recipes.indexOf(recipe),1);
 
-        callback(saved);
+        callback(err);
       });
     }
   }
 
-  removeRecipe(recipe:Recipe,callback: (result: boolean) => void):void{
+  removeRecipe(recipe:Recipe,callback: (err: Error) => void):void{
     let index = this.recipes.findIndex(o=>o.title.toLowerCase()==recipe.title.toLowerCase());
-    //this.recipes.splice(index,1);
+    this.recipes.splice(index,1);
+    this.save(err=>{
+      if(err) //rollback locally
+        this.recipes.push(recipe);
+
+      callback(err);
+    });
   }
 
-  private save(callback: (saved: boolean) => void) {
+  private save(callback: (err:Error) => void) {
     this.storage.set(this.RECIPES_KEY, this.recipes)
       .then(data => {
-        callback(true);
+        callback(null);
       })
       .catch(err=>{
         console.error(err);
-        callback(false);
+        callback(err);
       });
   }
 }
