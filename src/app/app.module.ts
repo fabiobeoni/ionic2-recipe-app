@@ -1,4 +1,5 @@
 import {NgModule, ErrorHandler} from '@angular/core';
+import { HttpModule } from '@angular/http';
 import {IonicApp, IonicModule, IonicErrorHandler} from 'ionic-angular';
 import {MyApp} from './app.component';
 import {TabsPage} from '../pages/tabs/tabs';
@@ -21,6 +22,7 @@ import {ToastCtrl} from "../utils/toast-ctrl";
     TabsPage
   ],
   imports: [
+    HttpModule,
     IonicModule.forRoot(MyApp)
   ],
   bootstrap: [IonicApp],

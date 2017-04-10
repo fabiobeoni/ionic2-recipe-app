@@ -5,7 +5,6 @@ import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {ModelValidationService} from "../../services/model-validation-service";
 import {Ingredient} from "../../models/ingradient";
-import {ValidationErrorInterface} from "validator.ts/ValidationErrorInterface";
 import {ToastCtrl} from "../../utils/toast-ctrl";
 
 @Component({
@@ -47,40 +46,28 @@ export class RecipeEditPage implements OnInit {
     private alertCtrl:AlertController,
     private toastCtrl: ToastCtrl,
     private recipeSrv:RecipeService,
-    public validator:ModelValidationService
+    public validator:ModelValidationService //used in UI
   ) {}
 
   ngOnInit(){
     if(this.navParams.data.recipe){
       this.mode = RecipeEditPage.Modes.EDIT;
-      this.recipe = this.navParams.data.recipe;
+      this.recipe=this.navParams.data.recipe;
     }
     else{
-      this.mode = RecipeEditPage.Modes.ADD;
       this.recipe = this.recipeSrv.getNewRecipe();
     }
   }
 
   save(){
-    this.validator.validate(this.recipe,(isValid:boolean)=> {
-      if(isValid)
-      {
-        let message:string = '';
-        if(this.mode==RecipeEditPage.Modes.ADD)
-          this.recipeSrv.addRecipe(this.recipe,(err:Error)=>{
-            if(!err) message = 'Recipe saved';
-            else message = err.message;
-
-            this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
-            this.navCtrl.pop();
-          });
-        else{
-          //TODO: implement...
-          this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
-        }
-      }
-
-    });
+    if(this.mode==RecipeEditPage.Modes.ADD)
+      this.recipeSrv.addRecipe(this.recipe,(err:Error)=>{
+        this.displaySavingMessage(err)
+      });
+    else
+      this.recipeSrv.updateRecipe(this.recipe,(err:Error)=>{
+        this.displaySavingMessage(err)
+      });
   }
 
   removeRecipe():void{
@@ -115,7 +102,23 @@ export class RecipeEditPage implements OnInit {
     actionSheet.present();
   }
 
-  displayIngredientAlert(){
+  private addIngredient(name,amount):void {
+    let count:number = this.recipe.ingredients.length;
+    let newIngredient:Ingredient = Ingredient.factory(name,amount);
+
+    this.recipeSrv.addIngredient(this.recipe, newIngredient, (err:Error)=>{
+      if(err) this.ingredientsAlert.setSubTitle(err.message);
+      else if(count<this.recipe.ingredients.length)
+        this.ingredientsAlert.dismiss();
+    });
+  }
+
+  private deleteAllIngredients():void{
+    this.recipeSrv.removeAllIngredients(this.recipe);
+    this.toastCtrl.info('All ingredients deleted',ToastCtrl.LENGTH_SHORT);
+  }
+
+  private displayIngredientAlert(){
     this.ingredientsAlert = this.alertCtrl.create({
       title:'Ingredients',
       inputs:[
@@ -147,7 +150,7 @@ export class RecipeEditPage implements OnInit {
     this.ingredientsAlert.present();
   }
 
-  displayDeleteConfirmAlert(){
+  private displayDeleteConfirmAlert(){
     let confirm = this.alertCtrl.create({
       title: 'Please confirm deleting',
       message: 'Do you really want to delete all ingredients? Action cannot be un-do.',
@@ -165,29 +168,16 @@ export class RecipeEditPage implements OnInit {
     confirm.present();
   }
 
-  private addIngredient(name,amount):void {
-    let count:number = this.recipe.ingredients.length;
-    let newIngredient:Ingredient = Ingredient.factory(name,amount);
-
-    this.validator.validate(newIngredient,(isValid:boolean)=>{
-      if(isValid){
-        let found = this.recipe.ingredients.find(o=>o.name==name);
-        if(!found)
-          this.recipe.ingredients.push(newIngredient);
-        else
-          this.ingredientsAlert.setSubTitle('Ingredient is already available in the list.');
-      }
-      else
-        this.ingredientsAlert.setSubTitle(this.validator.errorsToString());
-
-      if(count<this.recipe.ingredients.length)
-        this.ingredientsAlert.dismiss();
-    });
-  }
-
-  private deleteAllIngredients():void{
-    this.recipe.ingredients = [];
-    this.toastCtrl.info('All ingredients deleted',ToastCtrl.LENGTH_SHORT);
+  private displaySavingMessage(err:Error){
+    let message:string = 'Recipe saved';
+    if(err) {
+      message = err.message;
+      this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
+    }
+    else{
+      this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
+      this.navCtrl.pop();
+    }
   }
 
 }

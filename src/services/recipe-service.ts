@@ -1,8 +1,12 @@
 import {Recipe} from "../models/recipe";
 import {Storage} from '@ionic/storage';
 import {AppModule} from "../app/app.module";
+import {ModelValidationService} from "./model-validation-service";
+import {Ingredient} from "../models/ingradient";
+import {Injectable} from "@angular/core";
+import {JsonCast} from "../utils/JsonCast";
 
-
+@Injectable()
 export class RecipeService{
 
   private readonly RECIPES_KEY = 'recipes';
@@ -10,20 +14,21 @@ export class RecipeService{
   private recipes:Recipe[] = [];
   private storage:Storage;
 
-  constructor(){
+  constructor(private validator:ModelValidationService){
     this.storage = new Storage({name:AppModule.DB_NAME});
   }
 
   getRecipes(callback:(recipes:Recipe[],err:Error)=>void):void{
+    let srv = this;
     this.storage.get(this.RECIPES_KEY)
       .then(data => {
-        if(data) this.recipes = data;
+        if(data) srv.recipes = (JsonCast.castMany<Recipe>(data,Recipe));
 
-        callback(this.recipes.slice(),null);
+        callback((srv.recipes.slice() as Recipe[]),null);
       })
       .catch(err=>{
         console.error(err);
-        callback(this.recipes.slice(),err);
+        callback((srv.recipes.slice() as Recipe[]),err);
       });
   }
 
@@ -32,30 +37,88 @@ export class RecipeService{
   }
 
   addRecipe(recipe:Recipe,callback:(err:Error)=>void):void {
-    let exists = this.recipes.find(o=>o.title.trim().toLocaleLowerCase()==recipe.title.trim().toLocaleLowerCase());
-    if(!exists){
-      this.recipes.push(recipe);
-      this.save(err=>{
-        if(err) //rollback locally
-          this.recipes.splice(this.recipes.indexOf(recipe),1);
+    let srv = this;
+    this.validator.whenValid(recipe,
+      //success callback
+      ()=> {
+        let exists = srv.recipes.find(o=>o.id==recipe.id);
+        if(!exists){
+          srv.recipes.push(recipe);
 
-        callback(err);
-      });
-    }
+          //stores data on with storage
+          srv.save(err=>{
+            if(err) //rollback locally
+              srv.recipes.splice(srv.recipes.indexOf(recipe),1);
+
+            callback(err);
+          });
+        }
+      },
+      //fail callback
+      callback
+    );
+  }
+
+  updateRecipe(recipe:Recipe,callback:(err:Error)=>void):void {
+    let srv = this;
+    this.validator.whenValid(recipe,
+      //success callback
+      ()=> {
+
+        //TODO: la ricerca non e' necessaria visto che srv.recipes gia' contiene la recipe aggiornata
+        let recipeToUpdate = srv.recipes.find(o=>o.id==recipe.id);
+        if(recipeToUpdate){
+          let index = srv.recipes.indexOf(recipeToUpdate);
+          srv.recipes[index] = recipe;
+
+          //stores data on with storage
+          srv.save(err=>{
+            if(err) //rollback locally
+              srv.recipes[index] = recipeToUpdate;
+
+            callback(err);
+          });
+        }
+        else callback(new Error('Cannot find the recipe to update.'));
+      },
+      //fail callback
+      callback
+    );
   }
 
   removeRecipe(recipe:Recipe,callback: (err: Error) => void):void{
-    let index = this.recipes.findIndex(o=>o.title.toLowerCase()==recipe.title.toLowerCase());
+    let srv = this;
+    let index = this.recipes.findIndex(o=>o.id==recipe.id);
     this.recipes.splice(index,1);
     this.save(err=>{
       if(err) //rollback locally
-        this.recipes.push(recipe);
+        srv.recipes.push(recipe);
 
       callback(err);
     });
   }
 
-  private save(callback: (err:Error) => void) {
+  addIngredient(recipe:Recipe,ingredient:Ingredient,callback:(err:Error)=>void):void{
+    this.validator.whenValid(ingredient,
+      //success callback
+      ()=>{
+        let found = recipe.ingredients.find(o=>o.name==name);
+        if(!found)
+          recipe.ingredients.push(ingredient);
+        else
+          callback(new Error('Ingredient is already available in the list.'));
+      },
+
+      //fail callback
+      callback
+    );
+  }
+
+  removeAllIngredients(recipe:Recipe):void{
+    recipe.ingredients = [];
+  }
+
+  private save(callback: (err:Error) => void):void {
     this.storage.set(this.RECIPES_KEY, this.recipes)
       .then(data => {
         callback(null);

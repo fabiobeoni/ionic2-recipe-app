@@ -22,6 +22,13 @@ export class ModelValidationService{
       });
   }
 
+
+  public whenValid(model:Object, success:()=>void,fail:(err:Error)=>void){
+    this.validate(model,(isValid => {
+      isValid ? success() : fail(new Error(this.errorsToString()));
+    }));
+  }
+
   fieldErrors(field:string):string{
     let messages:string[]=[];
     let error = this._errors.find(o=>o.property.toLowerCase()==field.toLowerCase());
