@@ -4,31 +4,31 @@ import {AppModule} from "../app/app.module";
 import {ModelValidationService} from "./model-validation-service";
 import {Ingredient} from "../models/ingradient";
 import {Injectable} from "@angular/core";
-import {JsonCast} from "../utils/JsonCast";
+import {JsonCast} from "../utils/json-cast";
 
 @Injectable()
 export class RecipeService{
 
   private readonly RECIPES_KEY = 'recipes';
 
-  private recipes:Recipe[] = [];
-  private storage:Storage;
+  private _recipes:Recipe[] =[];
+  private _storage:Storage;
 
   constructor(private validator:ModelValidationService){
-    this.storage = new Storage({name:AppModule.DB_NAME});
+    this._storage = new Storage({name:AppModule.DB_NAME});
   }
 
   getRecipes(callback:(recipes:Recipe[],err:Error)=>void):void{
     let srv = this;
-    this.storage.get(this.RECIPES_KEY)
+    this._storage.get(this.RECIPES_KEY)
       .then(data => {
-        if(data) srv.recipes = (JsonCast.castMany<Recipe>(data,Recipe));
+        if(data) srv._recipes = (JsonCast.castMany<Recipe>(data,Recipe));
 
-        callback((srv.recipes.slice() as Recipe[]),null);
+        callback(srv._recipes.slice(),null);
       })
       .catch(err=>{
         console.error(err);
-        callback((srv.recipes.slice() as Recipe[]),err);
+        callback(srv._recipes.slice(),err);
       });
   }
 
@@ -41,14 +41,14 @@ export class RecipeService{
     this.validator.whenValid(recipe,
       //success callback
       ()=> {
-        let exists = srv.recipes.find(o=>o.id==recipe.id);
+        let exists = srv._recipes.find(o=>o.id==recipe.id);
         if(!exists){
-          srv.recipes.push(recipe);
+          srv._recipes.push(recipe);
 
           //stores data on with storage
           srv.save(err=>{
             if(err) //rollback locally
-              srv.recipes.splice(srv.recipes.indexOf(recipe),1);
+              srv._recipes.splice(srv._recipes.indexOf(recipe),1);
 
             callback(err);
           });
@@ -63,24 +63,7 @@ export class RecipeService{
     let srv = this;
     this.validator.whenValid(recipe,
       //success callback
-      ()=> {
-
-        //TODO: la ricerca non e' necessaria visto che srv.recipes gia' contiene la recipe aggiornata
-        let recipeToUpdate = srv.recipes.find(o=>o.id==recipe.id);
-        if(recipeToUpdate){
-          let index = srv.recipes.indexOf(recipeToUpdate);
-          srv.recipes[index] = recipe;
-
-          //stores data on with storage
-          srv.save(err=>{
-            if(err) //rollback locally
-              srv.recipes[index] = recipeToUpdate;
-
-            callback(err);
-          });
-        }
-        else callback(new Error('Cannot find the recipe to update.'));
-      },
+      ()=> {srv.save(callback);},
       //fail callback
       callback
     );
@@ -88,11 +71,11 @@ export class RecipeService{
 
   removeRecipe(recipe:Recipe,callback: (err: Error) => void):void{
     let srv = this;
-    let index = this.recipes.findIndex(o=>o.id==recipe.id);
-    this.recipes.splice(index,1);
+    let index = this._recipes.findIndex(o=>o.id==recipe.id);
+    this._recipes.splice(index,1);
     this.save(err=>{
       if(err) //rollback locally
-        srv.recipes.push(recipe);
+        srv._recipes.push(recipe);
 
       callback(err);
     });
@@ -119,7 +102,7 @@ export class RecipeService{
   }
 
   private save(callback: (err:Error) => void):void {
-    this.storage.set(this.RECIPES_KEY, this.recipes)
+    this._storage.set(this.RECIPES_KEY, this._recipes)
       .then(data => {
         callback(null);
       })

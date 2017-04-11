@@ -1,86 +1,84 @@
 import {Component, OnInit} from '@angular/core';
-import {NavParams, ActionSheetController, AlertController, ToastController, Alert, NavController} from 'ionic-angular';
-import {Difficulties} from "../../models/recipe-difficulties";
+import {NavParams, ActionSheetController, AlertController, Alert, NavController} from 'ionic-angular';
 import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {ModelValidationService} from "../../services/model-validation-service";
 import {Ingredient} from "../../models/ingradient";
 import {ToastCtrl} from "../../utils/toast-ctrl";
+import {RecipeDifficultyOptions} from "../recipe-difficulty-options";
 
 @Component({
   selector: 'page-recipe-edit',
   templateUrl: 'recipe-edit.html'
 })
-export class RecipeEditPage implements OnInit {
+export class RecipeEditPage implements OnInit{
+
 
   static Modes = {
     EDIT:'Edit',
     ADD:'New'
   };
 
-  mode = RecipeEditPage.Modes.ADD;
+  private _difficultyOptions = RecipeDifficultyOptions;
+  private _mode = RecipeEditPage.Modes.ADD;
+  private _recipe:Recipe;
+  private _ingredientsAlert:Alert;
 
-  options:any[]= [
-    {
-      label:'Easy',
-      value:Difficulties.EASY
-    },
-    {
-      label:'Medium',
-      value:Difficulties.MEDIUM
-    },
-    {
-      label:'Difficult',
-      value:Difficulties.DIFFICULT
-    }
-  ];
+  //used in UI
+  get validator(): ModelValidationService {
+    return this._validatorSrv;
+  }
 
-  recipe:Recipe;
+  get recipe(): Recipe {
+    return this._recipe;
+  }
 
-  private ingredientsAlert:Alert;
+  get difficultyOptions(): any {
+    return this._difficultyOptions.options;
+  }
 
   constructor(
-    public navParams: NavParams,
-    private navCtrl:NavController,
-    private actionSheetCtrl:ActionSheetController,
-    private alertCtrl:AlertController,
-    private toastCtrl: ToastCtrl,
-    private recipeSrv:RecipeService,
-    public validator:ModelValidationService //used in UI
+    public _navParams: NavParams,
+    private _navCtrl:NavController,
+    private _actionSheetCtrl:ActionSheetController,
+    private _alertCtrl:AlertController,
+    private _toastCtrl: ToastCtrl,
+    private _recipeSrv:RecipeService,
+    private _validatorSrv:ModelValidationService
   ) {}
 
+  //todo: check why ionWillEnter does't fire (this page is open by nav-push)
   ngOnInit(){
-    if(this.navParams.data.recipe){
-      this.mode = RecipeEditPage.Modes.EDIT;
-      this.recipe=this.navParams.data.recipe;
+    if(this._navParams.data.recipe){
+      this._mode = RecipeEditPage.Modes.EDIT;
+      this._recipe=this._navParams.data.recipe;
     }
-    else{
-      this.recipe = this.recipeSrv.getNewRecipe();
-    }
+    else
+      this._recipe = this._recipeSrv.getNewRecipe();
   }
 
   save(){
-    if(this.mode==RecipeEditPage.Modes.ADD)
-      this.recipeSrv.addRecipe(this.recipe,(err:Error)=>{
+    if(this._mode==RecipeEditPage.Modes.ADD)
+      this._recipeSrv.addRecipe(this._recipe,(err:Error)=>{
         this.displaySavingMessage(err)
       });
     else
-      this.recipeSrv.updateRecipe(this.recipe,(err:Error)=>{
+      this._recipeSrv.updateRecipe(this._recipe,(err:Error)=>{
         this.displaySavingMessage(err)
       });
   }
 
   removeRecipe():void{
-    this.recipeSrv.removeRecipe(this.recipe,(err:Error)=>{
+    this._recipeSrv.removeRecipe(this._recipe,(err:Error)=>{
       if(err)
-        this.toastCtrl.info(err.message,ToastCtrl.LENGTH_MEDIUM);
+        this._toastCtrl.info(err.message,ToastCtrl.LENGTH_MEDIUM);
       else
-        this.navCtrl.pop();
+        this._navCtrl.pop();
     });
   }
 
   displayIngredientMenu(){
-    let actionSheet = this.actionSheetCtrl.create({
+    let actionSheet = this._actionSheetCtrl.create({
       title:'Select',
       buttons:[
         {
@@ -103,23 +101,23 @@ export class RecipeEditPage implements OnInit {
   }
 
   private addIngredient(name,amount):void {
-    let count:number = this.recipe.ingredients.length;
+    let count:number = this._recipe.ingredients.length;
     let newIngredient:Ingredient = Ingredient.factory(name,amount);
 
-    this.recipeSrv.addIngredient(this.recipe, newIngredient, (err:Error)=>{
-      if(err) this.ingredientsAlert.setSubTitle(err.message);
-      else if(count<this.recipe.ingredients.length)
-        this.ingredientsAlert.dismiss();
+    this._recipeSrv.addIngredient(this._recipe, newIngredient, (err:Error)=>{
+      if(err) this._ingredientsAlert.setSubTitle(err.message);
+      else if(count<this._recipe.ingredients.length)
+        this._ingredientsAlert.dismiss();
     });
   }
 
   private deleteAllIngredients():void{
-    this.recipeSrv.removeAllIngredients(this.recipe);
-    this.toastCtrl.info('All ingredients deleted',ToastCtrl.LENGTH_SHORT);
+    this._recipeSrv.removeAllIngredients(this._recipe);
+    this._toastCtrl.info('All ingredients deleted',ToastCtrl.LENGTH_SHORT);
   }
 
   private displayIngredientAlert(){
-    this.ingredientsAlert = this.alertCtrl.create({
+    this._ingredientsAlert = this._alertCtrl.create({
       title:'Ingredients',
       inputs:[
         {
@@ -134,7 +132,7 @@ export class RecipeEditPage implements OnInit {
       ],
       buttons:[
         {
-          text:'Cancel',
+          text:'Close',
           role:'cancel'
         },
         {
@@ -147,11 +145,11 @@ export class RecipeEditPage implements OnInit {
       ]
     });
 
-    this.ingredientsAlert.present();
+    this._ingredientsAlert.present();
   }
 
   private displayDeleteConfirmAlert(){
-    let confirm = this.alertCtrl.create({
+    let confirm = this._alertCtrl.create({
       title: 'Please confirm deleting',
       message: 'Do you really want to delete all ingredients? Action cannot be un-do.',
       buttons: [
@@ -172,11 +170,11 @@ export class RecipeEditPage implements OnInit {
     let message:string = 'Recipe saved';
     if(err) {
       message = err.message;
-      this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
+      this._toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
     }
     else{
-      this.toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
-      this.navCtrl.pop();
+      this._toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
+      this._navCtrl.pop();
     }
   }
 

@@ -21,7 +21,7 @@
         <ion-input [(ngModel)]="recipe.title" name="title" type="text"></ion-input>
       </ion-item>
       <ion-item no-lines>
-        {{validator.fieldErrors('title')}}
+        {{validator.messageFor('title')}}
       </ion-item>
       <ion-item>
         <ion-label floating>Description</ion-label>
@@ -29,12 +29,12 @@
         <span class="field_helper"></span>
       </ion-item>
       <ion-item no-lines>
-        {{validator.fieldErrors('description')}}
+        {{validator.messageFor('description')}}
       </ion-item>
       <ion-item>
         <ion-label floating>Difficulty</ion-label>
-        <ion-select  [(ngModel)]="recipe.difficulty" name="difficulty">
-          <ion-option *ngFor="let option of options" [value]="option.value">
+        <ion-select [(ngModel)]="recipe.difficulty" name="difficulty">
+          <ion-option *ngFor="let option of difficultyOptions" [value]="option.value">
             {{option.label}}
           </ion-option>
         </ion-select>
@@ -51,7 +51,7 @@
         </ion-row>
       </ion-item>
     </ion-list>
-    <ion-item>{{validator.fieldErrors('ingredients')}}</ion-item>
+    <ion-item>{{validator.messageFor('ingredients')}}</ion-item>
 
     <button (click)="save()" ion-button type="submit" block>Save</button>
 

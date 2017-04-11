@@ -1,7 +1,6 @@
 import "../utils/utils";
 
 import {Ingredient} from "./ingradient";
-import {Difficulties} from "./recipe-difficulties";
 import {ArrayMinSize, IsNotEmpty, Length, Max, Min} from "class-validator";
 
 
@@ -9,6 +8,12 @@ import {ArrayMinSize, IsNotEmpty, Length, Max, Min} from "class-validator";
 export class Recipe {
 
     private static readonly LENGTH_MESSAGE:string = '"{0}" is invalid ({1} to {2} digits)';
+
+    static readonly Difficulties = {
+      EASY:0,
+      MEDIUM:1,
+      DIFFICULT:2
+    };
 
     @IsNotEmpty()
     id:string;
@@ -19,9 +24,9 @@ export class Recipe {
     @Length(1,2000, {message:Recipe.LENGTH_MESSAGE.format('Description','1','2000')})
     description:string;
 
-    @Min(Difficulties.EASY)
-    @Max(Difficulties.DIFFICULT)
-    difficulty:number = Difficulties.EASY;
+    @Min(Recipe.Difficulties.EASY)
+    @Max(Recipe.Difficulties.DIFFICULT)
+    difficulty:number = Recipe.Difficulties.EASY;
 
     //TODO: check why is not validating when removing ingredients from existing recipe then saving
     @ArrayMinSize(1, {message:'Ingredients are missing'})

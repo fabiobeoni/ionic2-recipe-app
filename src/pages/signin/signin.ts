@@ -2,21 +2,21 @@ import { Component } from '@angular/core';
 import { NavController, NavParams } from 'ionic-angular';
 
 /*
-  Generated class for the Recipe page.
+  Generated class for the Signin page.
 
   See http://ionicframework.com/docs/v2/components/#navigation for more info on
   Ionic pages and navigation.
 */
 @Component({
-  selector: 'page-recipe',
-  templateUrl: 'recipe.html'
+  selector: 'page-signin',
+  templateUrl: 'signin.html'
 })
-export class RecipePage {
+export class SigninPage {
 
   constructor(public navCtrl: NavController, public navParams: NavParams) {}
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad RecipePage');
+    console.log('ionViewDidLoad SigninPage');
   }
 
 }

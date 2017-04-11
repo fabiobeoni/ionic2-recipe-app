@@ -11,15 +11,18 @@ import {ShoppingListService} from "../services/shopping-list-service";
 import {RecipeService} from "../services/recipe-service";
 import {ModelValidationService} from "../services/model-validation-service";
 import {ToastCtrl} from "../utils/toast-ctrl";
+import {SigninPage} from "../pages/signin/signin";
+import {SignupPage} from "../pages/signup/signup";
 
 @NgModule({
   declarations: [
     MyApp,
-    RecipePage,
     RecipeEditPage,
     RecipesPage,
     ShoppingListPage,
-    TabsPage
+    TabsPage,
+    SigninPage,
+    SignupPage
   ],
   imports: [
     HttpModule,
@@ -28,11 +31,12 @@ import {ToastCtrl} from "../utils/toast-ctrl";
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
-    RecipePage,
     RecipeEditPage,
     RecipesPage,
     ShoppingListPage,
-    TabsPage
+    TabsPage,
+    SigninPage,
+    SignupPage
   ],
   providers: [
     {provide: ErrorHandler, useClass: IonicErrorHandler},

@@ -29,7 +29,7 @@ export class ModelValidationService{
     }));
   }
 
-  fieldErrors(field:string):string{
+  messageFor(field:string):string{
     let messages:string[]=[];
     let error = this._errors.find(o=>o.property.toLowerCase()==field.toLowerCase());
     if(error)
