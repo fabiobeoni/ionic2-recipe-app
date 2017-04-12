@@ -13,6 +13,7 @@ import {ModelValidationService} from "../services/model-validation-service";
 import {ToastCtrl} from "../utils/toast-ctrl";
 import {SigninPage} from "../pages/signin/signin";
 import {SignupPage} from "../pages/signup/signup";
+import {AuthService} from "../services/auth-service";
 
 @NgModule({
   declarations: [
@@ -40,7 +41,7 @@ import {SignupPage} from "../pages/signup/signup";
   ],
   providers: [
     {provide: ErrorHandler, useClass: IonicErrorHandler},
-    ShoppingListService, RecipeService, ModelValidationService, ToastCtrl
+    AuthService, ShoppingListService, RecipeService, ModelValidationService, ToastCtrl
   ]
 })
 export class AppModule {

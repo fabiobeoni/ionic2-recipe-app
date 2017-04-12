@@ -6,26 +6,18 @@
   </ion-header>
   <ion-content>
     <ion-list>
-      <button ion-item icon-left
-        (click)="displayPage(tabsPage)">
-        Recipes Book
-        <ion-icon name="book"></ion-icon>
-      </button>
-      <button ion-item icon-left
-              (click)="displayPage(signInPage)">
-        Login
-        <ion-icon name="log-in"></ion-icon>
-      </button>
-      <button ion-item icon-left
-               (click)="displayPage(signUpPage)">
-        Sign up
-        <ion-icon name="person"></ion-icon>
-      </button>
-      <button ion-item icon-left
-              (click)="logout()">
-        Logout
-        <ion-icon name="log-out"></ion-icon>
-      </button>
+      <ion-item (click)="displayPage(tabsPage)">Recipes Book
+        <ion-icon name="book" item-left></ion-icon>
+      </ion-item>
+      <ion-item (click)="displayPage(signInPage)">Login
+        <ion-icon name="log-in" item-left></ion-icon>
+      </ion-item>
+      <ion-item (click)="displayPage(signUpPage)">Sign up
+        <ion-icon name="person" item-left></ion-icon>
+      </ion-item>
+      <ion-item (click)="logout()">Logout
+        <ion-icon name="log-out" item-left></ion-icon>
+      </ion-item>
     </ion-list>
   </ion-content>
 </ion-menu>

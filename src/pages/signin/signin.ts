@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
-import { NavController, NavParams } from 'ionic-angular';
+import {NgForm} from "@angular/forms";
 
 /*
-  Generated class for the Signin page.
-
-  See http://ionicframework.com/docs/v2/components/#navigation for more info on
-  Ionic pages and navigation.
+  This page shows a different approach to
+  validating input data. Uses angular only,
+  instead of model validation we have for
+  recipe. The code behind works directly
+  with the form submitted instead of
+  the model class.//
 */
 @Component({
   selector: 'page-signin',
@@ -13,10 +15,8 @@ import { NavController, NavParams } from 'ionic-angular';
 })
 export class SigninPage {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {}
+  signin(form:NgForm) {
 
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad SigninPage');
   }
 
 }

@@ -22,6 +22,7 @@
     "@ionic-native/file": "^3.4.4",
     "class-validator": "^0.7.0",
     "es6-shim": "^0.35.3",
+    "firebase": "^3.7.6",
     "ionic-angular": "2.0.0",
     "ionic-native": "2.4.1",
     "ionicons": "3.0.0",
