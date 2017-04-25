@@ -4,6 +4,7 @@ import {FirebaseAuthService} from "../../services/firebase-auth-service";
 import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {JsonCast} from "../../utils/json-cast";
+import {ToastWrapper} from "../../utils/toast-wrp";
 
 @Component({
   selector: 'page-backup',
@@ -21,7 +22,8 @@ export class BackupPage {
     private _firebaseAuthSrv:FirebaseAuthService,
     private _firebaseStorageSrv:FirebaseStorageService,
     private _recipeSrv:RecipeService,
-    private _ngZone:NgZone)
+    private _ngZone:NgZone,
+    private _toastWrp:ToastWrapper)
   {}
 
   ionViewDidLoad(){
@@ -41,23 +43,28 @@ export class BackupPage {
 
   private performBackup():void{
     let self = this;
-    this._message = 'Backup started, please wait...';
     this._recipeSrv.getRecipes((recipes:Recipe[],err:Error)=>{
       if(!err){
-        let fileContent:string = JSON.stringify(recipes);
-        let uploadUrl:string = self.getBackupURL();
+        if(recipes.length>0)
+        {
+          self._message = 'Backup started, please wait...';
 
-        self._firebaseStorageSrv.uploadFile(
-          uploadUrl,
-          fileContent,
-          (progress:number,state:string,shapshotUrl:string,error:firebase.FirebaseError)=>{
-            self._progress = progress;
-            self._status = state;
+          let fileContent:string = JSON.stringify(recipes);
+          let uploadUrl:string = self.getBackupURL();
 
-            if(error) self._message = error.message;
-            if(self._progress==100) self._message = 'Completed. '+ shapshotUrl;
-          }
-        );
+          self._firebaseStorageSrv.uploadFile(
+            uploadUrl,
+            fileContent,
+            (progress:number,state:string,shapshotUrl:string,error:firebase.FirebaseError)=>{
+              self._progress = progress;
+              self._status = state;
+
+              if(error) self._message = error.message;
+              if(self._progress==100) self._message = 'Completed. '+ shapshotUrl;
+            }
+          );
+        }
+        else self._toastWrp.warn('You don\'t have any recipe yet to backup.');
       }
       else
         self._message = err.message;
@@ -79,12 +86,19 @@ export class BackupPage {
         self._ngZone.run(()=>{
           if(!downloadErr)
           {
-            //TODO: this cast doesn't cast ingredients in array
             let recipes:Recipe[] = JsonCast.castMany<Recipe>(json,Recipe);
-            self._recipeSrv.addRecipes(recipes,(storingErr:Error)=>{
-              if(!storingErr) self._message = 'Restoring completed.';
-              else self._message = storingErr.message;
-            });
+            if(recipes.length>0)
+              self._recipeSrv.addRecipes(recipes,(storingErr:Error)=>{
+                if(!storingErr) self._message = 'Restoring completed.';
+                else self._message = storingErr.message;
+              });
+            //this case should never happen since backup can be created
+            //only when recipes are available, but the admin of Firebase
+            //could clean up the file remotely
+            else {
+              self._message = '';
+              self._toastWrp.warn('Your backup it\'s empty!');
+            }
           }
           else self._message = downloadErr.message;
         });

@@ -19,7 +19,7 @@
 
 
 <ion-content padding>
-    <ion-list>
+    <ion-list *ngIf="_recipes.length>0">
       <ion-item detail-push
           *ngFor="let recipe of _recipes"
           [navPush]="recipeEditPage"
@@ -32,4 +32,5 @@
         </button>
       </ion-item>
     </ion-list>
+    <p text-center *ngIf="_recipes.length==0">No recipes yet.</p>
 </ion-content>

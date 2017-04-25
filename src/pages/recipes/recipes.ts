@@ -29,10 +29,17 @@ export class RecipesPage {
 
   ionViewWillEnter(){
     let loading = this._loadingCtrl.create({content:'Reading data...'});
-    loading.present();
+
+    //if the data are not loaded from
+    //the storage in less then half second
+    //them displays a loading to the user
+    setTimeout(()=>{
+      if(loading) loading.present();
+    },500);
 
     this._recipeSrv.getRecipes((recipes:Recipe[],err:Error) => {
       loading.dismiss();
+      loading = null;
 
       if(!err) this._recipes = recipes;
       else this._toastWrp.info(err.message,ToastWrapper.LENGTH_LONG);
