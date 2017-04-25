@@ -1,0 +1,27 @@
+
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>Backup / Restore</ion-title>
+    <ion-buttons left>
+      <button menuToggle ion-button icon-only>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+  <p>Backup your recipes from the device to Google Cloud Storage.</p>
+  <button (click)="performBackup()" [disabled]="!_canBackup" ion-button block>Backup</button><br/>
+  <p>Restore an existing backup from Google Cloud Storage to your device. <b>The restore will override all available recipes on this device, if any.</b></p>
+  <button (click)="performRestore()" [disabled]="!_canBackup" ion-button block color="danger">Restore</button>
+
+  <div *ngIf="(_canBackup && _progress!=-1 && _progress!=100)">
+    <p>Progress: {{_progress}}</p>
+    <p>Status: {{_status}}</p>
+  </div>
+  <p>{{_message}}</p>
+</ion-content>
