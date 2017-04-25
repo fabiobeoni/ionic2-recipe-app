@@ -1,7 +1,7 @@
 {
-  "name": "ionic-hello-world",
-  "author": "Ionic Framework",
-  "homepage": "http://ionicframework.com/",
+  "name": "recipes-app",
+  "author": "Fabio Beoni",
+  "homepage": "http://github.com/fabiobeoni",
   "private": true,
   "scripts": {
     "clean": "ionic-app-scripts clean",
@@ -44,5 +44,5 @@
     "ionic-plugin-keyboard"
   ],
   "cordovaPlatforms": [],
-  "description": "recipe-app: An Ionic project"
+  "description": "Recipes App: a Ionic project"
 }
