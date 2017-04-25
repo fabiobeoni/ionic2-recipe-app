@@ -9,13 +9,14 @@
       <ion-item (click)="displayPage(tabsPage)">Recipes Book
         <ion-icon name="book" item-left></ion-icon>
       </ion-item>
-      <ion-item (click)="displayPage(signInPage)">Login
-        <ion-icon name="log-in" item-left></ion-icon>
+      <ion-item *ngIf="!isUserAuthenticated" (click)="displayPage(authPage)" text-wrap>Authenticate
+        <ion-icon name="log-in" item-left></ion-icon><br/>
+        <ion-note>Signin to backup your recipes and never lose them.</ion-note>
       </ion-item>
-      <ion-item (click)="displayPage(signUpPage)">Sign up
-        <ion-icon name="person" item-left></ion-icon>
+      <ion-item *ngIf="isUserAuthenticated" (click)="displayPage(backupPage)">Backup / Restore
+        <ion-icon name="cloud-upload" item-left></ion-icon>
       </ion-item>
-      <ion-item (click)="logout()">Logout
+      <ion-item *ngIf="isUserAuthenticated" (click)="logout()">Logout
         <ion-icon name="log-out" item-left></ion-icon>
       </ion-item>
     </ion-list>

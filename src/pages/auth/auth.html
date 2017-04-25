@@ -14,14 +14,14 @@
         <ion-icon name="menu"></ion-icon>
       </button>
     </ion-buttons>
-    <ion-title>Sign-up</ion-title>
+    <ion-title>Authenticate</ion-title>
   </ion-navbar>
 
 </ion-header>
 
 
 <ion-content padding>
-  <form #f="ngForm" (submit)="signup(f)">
+  <form #f="ngForm">
     <ion-list>
       <ion-item>
         <ion-label fixed>Email</ion-label>
@@ -32,6 +32,11 @@
         <ion-input ngModel type="password" name="password" [minlength]="6"></ion-input>
       </ion-item>
     </ion-list>
-    <button type="submit" ion-button block [disabled]="!f.valid">Sign-up</button>
+    <p>Sign-in, if you have an account:</p>
+    <button ion-button block [disabled]="!f.valid" (click)="authenticate(f,'signin')">Sign-in</button>
+    <br/>
+    <p>or Sign-up if this is the first time:</p>
+    <button ion-button block [disabled]="!f.valid" (click)="authenticate(f,'signup')">Sign-up</button>
   </form>
+  <span>{{_message}}</span>
 </ion-content>

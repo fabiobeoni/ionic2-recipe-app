@@ -10,10 +10,12 @@ import {ShoppingListPage} from "../pages/shopping-list/shopping-list";
 import {ShoppingListService} from "../services/shopping-list-service";
 import {RecipeService} from "../services/recipe-service";
 import {ModelValidationService} from "../services/model-validation-service";
-import {ToastCtrl} from "../utils/toast-ctrl";
+import {ToastWrapper} from "../utils/toast-wrp";
 import {SigninPage} from "../pages/signin/signin";
-import {SignupPage} from "../pages/signup/signup";
-import {AuthService} from "../services/auth-service";
+import {AuthPage} from "../pages/auth/auth";
+import {FirebaseAuthService} from "../services/firebase-auth-service";
+import {BackupPage} from "../pages/backup/backup";
+import {FirebaseStorageService} from "../services/firebase-storage-service";
 
 @NgModule({
   declarations: [
@@ -22,8 +24,8 @@ import {AuthService} from "../services/auth-service";
     RecipesPage,
     ShoppingListPage,
     TabsPage,
-    SigninPage,
-    SignupPage
+    AuthPage,
+    BackupPage
   ],
   imports: [
     HttpModule,
@@ -36,12 +38,12 @@ import {AuthService} from "../services/auth-service";
     RecipesPage,
     ShoppingListPage,
     TabsPage,
-    SigninPage,
-    SignupPage
+    AuthPage,
+    BackupPage
   ],
   providers: [
     {provide: ErrorHandler, useClass: IonicErrorHandler},
-    AuthService, ShoppingListService, RecipeService, ModelValidationService, ToastCtrl
+    FirebaseAuthService, FirebaseStorageService, ShoppingListService, RecipeService, ModelValidationService, ToastWrapper
   ]
 })
 export class AppModule {

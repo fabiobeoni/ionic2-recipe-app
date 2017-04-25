@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import {Ingredient} from "../../models/ingradient";
 import {ShoppingListService} from "../../services/shopping-list-service";
 import {ToastController} from "ionic-angular";
+import {ModelValidationService} from "../../services/model-validation-service";
+import {ToastWrapper} from "../../utils/toast-wrp";
 
 
 @Component({
@@ -10,56 +12,63 @@ import {ToastController} from "ionic-angular";
 })
 export class ShoppingListPage {
 
-  ui = {
-    displayForm:false
+  private _ui = {
+    displayForm:false,
+    isModelValid:false
   };
 
-  ingredient:Ingredient = this.shoppingListSrv.getNewIngredient();
-  ingredients:Ingredient[] = [];
+  private _ingredient:Ingredient;
+  private _ingredients:Ingredient[]=[];
 
-  constructor(private shoppingListSrv:ShoppingListService, private toastCtrl:ToastController){
-    console.log("Shopping list loaded...");
+  constructor(
+    private _shoppingListSrv:ShoppingListService,
+    private _validatorSrv:ModelValidationService,
+    private _toastWrp:ToastWrapper)
+  {
+    this._ingredient = this._shoppingListSrv.getNewIngredient();
   }
 
   ionViewWillEnter(){
     this.loadIngredients();
   }
 
-  loadIngredients(){
-    this.ingredients = this.shoppingListSrv.getIngredients();
+  private loadIngredients(){
+    this._ingredients = this._shoppingListSrv.getIngredients();
   }
 
-  addIngredient(){
-    let result:boolean = this.shoppingListSrv.addIngredient(this.ingredient);
+  private addIngredient(){
+    let self = this;
 
-    let message = {
-      text:'',
-      class:''
-    };
+    //forces the cast to number, for some reason the input form
+    //returns "amount" as string, even if the model field is
+    //type number and the <input> type is number too.
+    this._ingredient.amount = parseInt(this._ingredient.amount.toString());
 
-    if(result){
-      this.ingredient = this.shoppingListSrv.getNewIngredient();
-      this.loadIngredients(); //reloads the list to show the update
+    this._validatorSrv.whenValid(this._ingredient, ()=>{
+        self._ui.isModelValid = true;
+        let result:boolean = this._shoppingListSrv.addIngredient(this._ingredient);
+        let message:string;
 
-      message.text = 'Ingredient added';
-      message.class = 'toast_success';
-    }
-    else{
-      message.text = 'Ingredient is already available in the list';
-      message.class = 'toast_warn';
-    }
+        if(result){
+          this._ingredient = this._shoppingListSrv.getNewIngredient();
+          this.loadIngredients(); //reloads the list to show the update
 
-   this.toastCtrl.create({
-       message: message.text,
-       duration: 3000,
-       position: 'top',
-       cssClass:message.class
-   }).present();
+          message = 'Ingredient added';
+          this._toastWrp.info(message);
+        }
+        else{
+          message = 'Ingredient is already available in the list';
+          this._toastWrp.warn(message);
+        }
+      },
+      err=>{/*alredy logged*/}
+      );
   }
 
-  removeIngredient(ingredient:Ingredient){
-    this.shoppingListSrv.removeIngredient(ingredient);
+  private removeIngredient(ingredient:Ingredient){
+    this._shoppingListSrv.removeIngredient(ingredient);
     this.loadIngredients();
   }
+
 
 }

@@ -4,7 +4,7 @@ import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {ModelValidationService} from "../../services/model-validation-service";
 import {Ingredient} from "../../models/ingradient";
-import {ToastCtrl} from "../../utils/toast-ctrl";
+import {ToastWrapper} from "../../utils/toast-wrp";
 import {RecipeDifficultyOptions} from "../recipe-difficulty-options";
 
 @Component({
@@ -12,7 +12,6 @@ import {RecipeDifficultyOptions} from "../recipe-difficulty-options";
   templateUrl: 'recipe-edit.html'
 })
 export class RecipeEditPage implements OnInit{
-
 
   static Modes = {
     EDIT:'Edit',
@@ -24,16 +23,7 @@ export class RecipeEditPage implements OnInit{
   private _recipe:Recipe;
   private _ingredientsAlert:Alert;
 
-  //used in UI
-  get validator(): ModelValidationService {
-    return this._validatorSrv;
-  }
-
-  get recipe(): Recipe {
-    return this._recipe;
-  }
-
-  get difficultyOptions(): any {
+  private get difficultyOptions(): any {
     return this._difficultyOptions.options;
   }
 
@@ -42,7 +32,7 @@ export class RecipeEditPage implements OnInit{
     private _navCtrl:NavController,
     private _actionSheetCtrl:ActionSheetController,
     private _alertCtrl:AlertController,
-    private _toastCtrl: ToastCtrl,
+    private _toastWrp: ToastWrapper,
     private _recipeSrv:RecipeService,
     private _validatorSrv:ModelValidationService
   ) {}
@@ -57,7 +47,7 @@ export class RecipeEditPage implements OnInit{
       this._recipe = this._recipeSrv.getNewRecipe();
   }
 
-  save(){
+  private save(){
     if(this._mode==RecipeEditPage.Modes.ADD)
       this._recipeSrv.addRecipe(this._recipe,(err:Error)=>{
         this.displaySavingMessage(err)
@@ -68,16 +58,16 @@ export class RecipeEditPage implements OnInit{
       });
   }
 
-  removeRecipe():void{
+  private removeRecipe():void{
     this._recipeSrv.removeRecipe(this._recipe,(err:Error)=>{
       if(err)
-        this._toastCtrl.info(err.message,ToastCtrl.LENGTH_MEDIUM);
+        this._toastWrp.info(err.message);
       else
         this._navCtrl.pop();
     });
   }
 
-  displayIngredientMenu(){
+  private displayIngredientMenu(){
     let actionSheet = this._actionSheetCtrl.create({
       title:'Select',
       buttons:[
@@ -113,7 +103,7 @@ export class RecipeEditPage implements OnInit{
 
   private deleteAllIngredients():void{
     this._recipeSrv.removeAllIngredients(this._recipe);
-    this._toastCtrl.info('All ingredients deleted',ToastCtrl.LENGTH_SHORT);
+    this._toastWrp.info('All ingredients deleted',ToastWrapper.LENGTH_SHORT);
   }
 
   private displayIngredientAlert(){
@@ -170,10 +160,10 @@ export class RecipeEditPage implements OnInit{
     let message:string = 'Recipe saved';
     if(err) {
       message = err.message;
-      this._toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
+      this._toastWrp.info(message);
     }
     else{
-      this._toastCtrl.info(message,ToastCtrl.LENGTH_MEDIUM);
+      this._toastWrp.info(message);
       this._navCtrl.pop();
     }
   }

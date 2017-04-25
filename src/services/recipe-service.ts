@@ -28,13 +28,18 @@ export class RecipeService{
       })
       .catch(err=>{
         console.error(err);
-        callback(srv._recipes.slice(),err);
+        callback(null,err);
       });
   }
 
   getNewRecipe():Recipe{
     return Recipe.factory();
   }
+
+  addRecipes(recipes:Recipe[],callback:(err:Error)=>void){
+    this._recipes = recipes;
+    this.save(callback);
+  };
 
   addRecipe(recipe:Recipe,callback:(err:Error)=>void):void {
     let srv = this;

@@ -1,5 +1,5 @@
 
-import {IsPositive, IsString, Length} from "class-validator";
+import {IsPositive, Length} from "class-validator";
 
 export class Ingredient{
 

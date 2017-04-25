@@ -2,10 +2,11 @@ import {Component} from '@angular/core';
 import {RecipeEditPage} from "../recipe-edit/recipe-edit";
 import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
-import {ToastCtrl} from "../../utils/toast-ctrl";
+import {ToastWrapper} from "../../utils/toast-wrp";
 import {RecipeDifficultyOptions} from "../recipe-difficulty-options";
 import {ShoppingListService} from "../../services/shopping-list-service";
 import {Ingredient} from "../../models/ingradient";
+import {LoadingController} from "ionic-angular";
 
 
 @Component({
@@ -19,35 +20,36 @@ export class RecipesPage {
 
   recipeEditPage = RecipeEditPage;
 
-  get recipes(): Recipe[] {
-    return this._recipes;
-  }
-
   constructor(
     private _recipeSrv:RecipeService,
-    private _toastCtrl: ToastCtrl,
-    private _shoppingListSrv:ShoppingListService
+    private _toastWrp: ToastWrapper,
+    private _shoppingListSrv:ShoppingListService,
+    private _loadingCtrl:LoadingController
   ) {}
 
   ionViewWillEnter(){
-    this._recipeSrv.getRecipes((recipes:Recipe[],err:Error) => {
-      this._recipes = recipes;
+    let loading = this._loadingCtrl.create({content:'Reading data...'});
+    loading.present();
 
-      if(err) this._toastCtrl.info(err.message,ToastCtrl.LENGTH_LONG);
+    this._recipeSrv.getRecipes((recipes:Recipe[],err:Error) => {
+      loading.dismiss();
+
+      if(!err) this._recipes = recipes;
+      else this._toastWrp.info(err.message,ToastWrapper.LENGTH_LONG);
     });
   }
 
-  addIngredientsToShoppingList(ingredients:Ingredient[],ev):void{
+  private addIngredientsToShoppingList(ingredients:Ingredient[],ev):void{
     ev.stopPropagation();
 
     this._shoppingListSrv.addIngredients(ingredients);
-    this._toastCtrl.info(
+    this._toastWrp.info(
       `${ingredients.length} ingredients added to shopping list.`,
-      ToastCtrl.LENGTH_SHORT
+      ToastWrapper.LENGTH_SHORT
     );
   }
 
-  getDifficultyOptionLabel(value:number):string{
+  private getDifficultyOptionLabel(value:number):string{
     return this._difficultyOptions.options.find(o=>o.value==value).label;
   }
 

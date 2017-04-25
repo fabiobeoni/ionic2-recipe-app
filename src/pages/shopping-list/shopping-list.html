@@ -7,6 +7,11 @@
         <ion-icon name="menu"></ion-icon>
       </button>
     </ion-buttons>
+    <ion-buttons end>
+      <button (click)="_ui.displayForm=true" ion-button icon-only>
+        <ion-icon name="add"></ion-icon>
+      </button>
+    </ion-buttons>
     <ion-title>Shopping List</ion-title>
   </ion-navbar>
 
@@ -14,47 +19,56 @@
 
 
 <ion-content scroll="false" padding>
-  <form #f="ngForm" *ngIf="ui.displayForm">
+  <form #f="ngForm" *ngIf="_ui.displayForm">
     <ion-list>
       <ion-item>
         <ion-label fixed>Name</ion-label>
         <ion-input
           type="text"
           name="name"
-          [(ngModel)]="ingredient.name"
-          required>
+          [(ngModel)]="_ingredient.name">
         </ion-input>
+      </ion-item>
+      <ion-item no-lines>
+        {{_validatorSrv.messageFor('name')}}
       </ion-item>
       <ion-item>
         <ion-label fixed>Amount</ion-label>
         <ion-input
           type="number"
           name="amount"
-          [(ngModel)]="ingredient.amount"
-          required>
+          [(ngModel)]="_ingredient.amount">
         </ion-input>
+      </ion-item>
+      <ion-item no-lines>
+        {{_validatorSrv.messageFor('amount')}}
       </ion-item>
     </ion-list>
     <button
       (click)="addIngredient()"
-      [disabled]="!ingredient.isValid()"
       ion-button
       type="submit">
-      Add
+      Add New Ingredient
     </button>
     <button
-      (click)="ui.displayForm=false"
-      ion-button>
-      Hide
+      (click)="_ui.displayForm=false"
+      ion-button color="light">
+      Close
     </button>
   </form>
-  <ion-fab top right edge>
-    <button (click)="ui.displayForm=true" ion-fab mini><ion-icon name="add"></ion-icon></button>
-  </ion-fab>
 
-  <ion-list [ngClass]="{shoppingListShort: ui.displayForm==true}">
-    <ion-item-sliding *ngFor="let ingredient of ingredients">
-      <button ion-item>{{ingredient.name}} | {{ingredient.amount}}</button>
+  <ion-list [ngClass]="{shoppingListShort: _ui.displayForm==true}">
+    <ion-item-sliding *ngFor="let ingredient of _ingredients">
+      <button ion-item  text-wrap>
+        <ion-row>
+          <ion-col text-left>
+            {{ingredient.name}}
+          </ion-col>
+          <ion-col width-20 text-right>
+            {{ingredient.amount}}
+          </ion-col>
+        </ion-row>
+      </button>
       <ion-item-options>
         <button (click)="removeIngredient(ingredient)" ion-button color="danger">
           <ion-icon name="trash"></ion-icon>
@@ -62,7 +76,7 @@
         </button>
       </ion-item-options>
     </ion-item-sliding>
-    <p *ngIf="ingredients.length==0 && !ui.displayForm">No items yet.</p>
+    <p text-center *ngIf="_ingredients.length==0 && !_ui.displayForm">No ingredients yet.</p>
   </ion-list>
 
 </ion-content>
