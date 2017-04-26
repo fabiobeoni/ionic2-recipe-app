@@ -6,21 +6,21 @@
   </ion-header>
   <ion-content>
     <ion-list>
-      <ion-item (click)="displayPage(tabsPage)">Recipes Book
+      <ion-item (click)="_displayPage(_tabsPage)">Recipes Book
         <ion-icon name="book" item-left></ion-icon>
       </ion-item>
-      <ion-item *ngIf="!isUserAuthenticated" (click)="displayPage(authPage)" text-wrap>Authenticate
+      <ion-item *ngIf="!_isUserAuthenticated" (click)="_displayPage(_authPage)" text-wrap>Authenticate
         <ion-icon name="log-in" item-left></ion-icon><br/>
         <ion-note>Signin to backup your recipes and never lose them.</ion-note>
       </ion-item>
-      <ion-item *ngIf="isUserAuthenticated" (click)="displayPage(backupPage)">Backup / Restore
+      <ion-item *ngIf="_isUserAuthenticated" (click)="_displayPage(_backupPage)">Backup / Restore
         <ion-icon name="cloud-upload" item-left></ion-icon>
       </ion-item>
-      <ion-item *ngIf="isUserAuthenticated" (click)="logout()">Logout
+      <ion-item *ngIf="_isUserAuthenticated" (click)="_logout()">Logout
         <ion-icon name="log-out" item-left></ion-icon>
       </ion-item>
     </ion-list>
   </ion-content>
 </ion-menu>
-<ion-nav [root]="tabsPage" #nav></ion-nav>
+<ion-nav [root]="_tabsPage" #nav></ion-nav>
 

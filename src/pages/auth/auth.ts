@@ -19,6 +19,9 @@ import {BackupPage} from "../backup/backup";
 })
 export class AuthPage {
 
+  /**
+   * Message displayed on UI about authentication steps and status.
+   */
   private _message:string;
 
   constructor(
@@ -29,20 +32,32 @@ export class AuthPage {
   ){}
 
 
-  authenticate(form:NgForm,selectedBehaviour:string){
+  /**
+   * Perform authentication over Firebase
+   * service by email and password.
+   * @param form: NgForm in UI
+   * @param selectedBehaviour: signin|signup
+   * @private
+   */
+  _authenticate(form:NgForm, selectedBehaviour:string){
 
+    //authentication method options,
+    // login or register and login
     let authBehaviours = {
       signup:this._authSrv.signup,
       signin:this._authSrv.signin
     };
 
+    //displays a loading message to the user
     let loadingWin = this._loadingCtrl.create({
       content:'In progress, please wait...'
     });
 
     loadingWin.present();
 
+    //starts the auth...
     authBehaviours[selectedBehaviour](form.value.email,form.value.password)
+      //user registered and/or logged-in
       .then(data=>{
         loadingWin.dismiss();
         this._menuCtrl.close();

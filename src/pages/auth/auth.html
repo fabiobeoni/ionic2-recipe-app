@@ -33,10 +33,10 @@
       </ion-item>
     </ion-list>
     <p>Sign-in, if you have an account:</p>
-    <button ion-button block [disabled]="!f.valid" (click)="authenticate(f,'signin')">Sign-in</button>
+    <button ion-button block [disabled]="!f.valid" (click)="_authenticate(f,'signin')">Sign-in</button>
     <br/>
     <p>or Sign-up if this is the first time:</p>
-    <button ion-button block [disabled]="!f.valid" (click)="authenticate(f,'signup')">Sign-up</button>
+    <button ion-button block [disabled]="!f.valid" (click)="_authenticate(f,'signup')">Sign-up</button>
   </form>
   <span>{{_message}}</span>
 </ion-content>
