@@ -4,7 +4,7 @@
     <ion-title>Editing Recipe</ion-title>
     <ion-buttons end>
       <button ion-button icon-only
-              (click)="removeRecipe()">
+              (click)="_removeRecipe()">
         <ion-icon name="trash"></ion-icon>
       </button>
     </ion-buttons>
@@ -34,14 +34,14 @@
       <ion-item>
         <ion-label floating>Difficulty</ion-label>
         <ion-select [(ngModel)]="_recipe.difficulty" name="difficulty">
-          <ion-option *ngFor="let option of difficultyOptions" [value]="option.value">
+          <ion-option *ngFor="let option of _difficultyOptions" [value]="option.value">
             {{option.label}}
           </ion-option>
         </ion-select>
       </ion-item>
     </ion-list>
 
-    <button (click)="displayIngredientMenu()" ion-button clear>Manage Ingredients</button>
+    <button (click)="_displayIngredientMenu()" ion-button clear>Manage Ingredients</button>
 
     <ion-list *ngIf="_recipe.ingredients.length>0">
       <ion-item *ngFor="let ingredient of _recipe.ingredients">
@@ -53,7 +53,7 @@
     </ion-list>
     <ion-item>{{_validatorSrv.messageFor('ingredients')}}</ion-item>
 
-    <button (click)="save()" ion-button type="submit" block>Save</button>
+    <button (click)="_save()" ion-button type="submit" block>Save</button>
 
   </form>
 
