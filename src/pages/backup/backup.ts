@@ -145,7 +145,10 @@ export class BackupPage {
     this._firebaseStorageSrv.downloadFile(
       this._getBackupURL(),
       //this is the download task status change handler
-      (json:any,downloadErr:Error)=>{
+      (data:any,downloadErr:Error)=>{
+
+        data = JSON.parse(data);
+
         //ngZone.run() is needed to make angular update
         //the view since the _message field is updated
         //in a callback that stops observables.
@@ -160,9 +163,9 @@ export class BackupPage {
             //library to work properly. Unfortunately this util
             //does not cast nested objects, but for the scope of
             //this sample app is enough.
-            let recipes:Recipe[] = JsonCast.castMany<Recipe>(json,Recipe);
+            let recipes:Recipe[] = JsonCast.castMany<Recipe>(data,Recipe);
             if(recipes.length>0)
-              self._recipeSrv.addRecipes(recipes,(storingErr:Error)=>{
+              self._recipeSrv.setRecipes(recipes,(storingErr:Error)=>{
                 if(!storingErr) self._message = 'Restoring completed.';
                 else self._message = storingErr.message;
               });

@@ -8,7 +8,7 @@ import {RecipesPage} from "../recipes/recipes";
 })
 export class TabsPage {
 
-  shoppingListPage = ShoppingListPage;
-  recipesPage = RecipesPage;
+  private _shoppingListPage = ShoppingListPage;
+  private _recipesPage = RecipesPage;
 
 }

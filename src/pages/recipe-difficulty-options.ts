@@ -1,5 +1,10 @@
 import {Recipe} from "../models/recipe";
 
+/**
+ * UI helper to display recipe difficulty
+ * options with labels instead of number
+ * values.
+ */
 export class RecipeDifficultyOptions {
 
   static get options(): any[] {

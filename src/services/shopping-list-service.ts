@@ -1,5 +1,12 @@
 import {Ingredient} from "../models/ingradient";
 
+/**
+ * Provides a service to manage
+ * a list of ingredients to shop,
+ * and perform CRUD operations
+ * over a database using Ionic
+ * Storage.
+ */
 export class ShoppingListService{
 
   private ingredients:any[] = [];

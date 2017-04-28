@@ -6,18 +6,44 @@ import {Ingredient} from "../models/ingradient";
 import {Injectable} from "@angular/core";
 import {JsonCast} from "../utils/json-cast";
 
+/**
+ * Provides a service to manage
+ * recipe data and perform CRUD
+ * operations over a database
+ * using Ionic Storage.
+ */
 @Injectable()
 export class RecipeService{
 
+  /**
+   * Table name for recipes data in Storage.
+   * @type {string}
+   */
   private readonly RECIPES_KEY = 'recipes';
 
+  /**
+   * Local copy of recipes read from db
+   * @type {Array}
+   * @private
+   */
   private _recipes:Recipe[] =[];
+
+  /**
+   * Instance of the Ionic Storage
+   */
   private _storage:Storage;
 
+  //TODO: in Ionic docs they say that the Storage should not be manually initialized, but instead injected.
+  //But I could not make it working by injection... check why.
   constructor(private validator:ModelValidationService){
     this._storage = new Storage({name:AppModule.DB_NAME});
   }
 
+  /**
+   * Loads all recipes data from
+   * the database.
+   * @param callback
+   */
   getRecipes(callback:(recipes:Recipe[],err:Error)=>void):void{
     let srv = this;
     this._storage.get(this.RECIPES_KEY)
@@ -32,15 +58,33 @@ export class RecipeService{
       });
   }
 
+  /**
+   * Creates a new recipe for editing.
+   * @returns {Recipe}
+   */
   getNewRecipe():Recipe{
     return Recipe.factory();
   }
 
-  addRecipes(recipes:Recipe[],callback:(err:Error)=>void){
+  /**
+   * Set allrecipes into the
+   * list and saves it to the database.
+   * @param recipes
+   * @param callback
+   */
+  setRecipes(recipes:Recipe[], callback:(err:Error)=>void){
     this._recipes = recipes;
     this.save(callback);
   };
 
+  /**
+   * Validate and add a recipe to the list
+   * and saves in the database.
+   * If saving throws an error,
+   * the local list is rolled-back.
+   * @param recipe
+   * @param callback
+   */
   addRecipe(recipe:Recipe,callback:(err:Error)=>void):void {
     let srv = this;
     this.validator.whenValid(recipe,
@@ -64,6 +108,12 @@ export class RecipeService{
     );
   }
 
+  /**
+   * Validates and updates the current editing
+   * recipe, then saves changes to the database.
+   * @param recipe
+   * @param callback
+   */
   updateRecipe(recipe:Recipe,callback:(err:Error)=>void):void {
     let srv = this;
     this.validator.whenValid(recipe,
@@ -74,6 +124,14 @@ export class RecipeService{
     );
   }
 
+  /**
+   * Validates and removes the current editing
+   * recipe, then saves changes to the database.
+   * When saving throws an error, the local list
+   * is rolled-back.
+   * @param recipe
+   * @param callback
+   */
   removeRecipe(recipe:Recipe,callback: (err: Error) => void):void{
     let srv = this;
     let index = this._recipes.findIndex(o=>o.id==recipe.id);
@@ -86,6 +144,15 @@ export class RecipeService{
     });
   }
 
+  /**
+   * Validates and add the editing
+   * ingredient to the current recipe.
+   * Data are not saved unless the user
+   * saves the recipe explicitly.
+   * @param recipe
+   * @param ingredient
+   * @param callback
+   */
   addIngredient(recipe:Recipe,ingredient:Ingredient,callback:(err:Error)=>void):void{
     this.validator.whenValid(ingredient,
       //success callback
@@ -102,10 +169,23 @@ export class RecipeService{
     );
   }
 
+  /**
+   * Removes all ingredients from the
+   * current recipe.
+   * Data are not saved unless the user
+   * saves the recipe explicitly.
+   * @param recipe
+   * @param ingredient
+   * @param callback
+   */
   removeAllIngredients(recipe:Recipe):void{
     recipe.ingredients = [];
   }
 
+  /**
+   * Saves changes to the database.
+   * @param callback
+   */
   private save(callback: (err:Error) => void):void {
     this._storage.set(this.RECIPES_KEY, this._recipes)
       .then(data => {

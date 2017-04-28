@@ -8,7 +8,7 @@
     </ion-buttons>
     <ion-buttons end>
       <button ion-button icon-only
-              [navPush]="recipeEditPage">
+              [navPush]="_recipeEditPage">
         <ion-icon name="add"></ion-icon>
       </button>
     </ion-buttons>
@@ -22,15 +22,17 @@
     <ion-list *ngIf="_recipes.length>0">
       <ion-item detail-push
           *ngFor="let recipe of _recipes"
-          [navPush]="recipeEditPage"
+          [navPush]="_recipeEditPage"
           [navParams]="{recipe:recipe}">
         <h2>{{recipe.title}}</h2>
-        <ion-note>{{getDifficultyOptionLabel(recipe.difficulty)}}</ion-note>
-        <button (click)="addIngredientsToShoppingList(recipe.ingredients,$event)" ion-button icon-right item-right>
+        <ion-note>{{_getDifficultyOptionLabel(recipe.difficulty)}}</ion-note>
+        <button (click)="_addIngredientsToShoppingList(recipe.ingredients,$event)" ion-button icon-right item-right>
           + Shop Ingredients
           <ion-icon name="basket"></ion-icon>
         </button>
       </ion-item>
     </ion-list>
-    <p text-center *ngIf="_recipes.length==0">No recipes yet.</p>
+    <p text-center *ngIf="_recipes.length==0">
+      No recipes yet.
+    </p>
 </ion-content>

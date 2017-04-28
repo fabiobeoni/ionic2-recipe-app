@@ -12,12 +12,29 @@ import {ToastWrapper} from "../../utils/toast-wrp";
 })
 export class ShoppingListPage {
 
-  private _ui = {
-    displayForm:false,
-    isModelValid:false
-  };
+  /**
+   * In UI makes the editing form
+   * visible/invisible
+   * @type {boolean}
+   * @private
+   */
+  private _displayForm:boolean = false;
 
+  /**
+   * View model object to host data
+   * from the ingredient editing
+   * form on this page.
+   */
   private _ingredient:Ingredient;
+
+  /**
+   * View model object to host
+   * the list of ingredients
+   * presented in a list on this
+   * page.
+   * @type {Array}
+   * @private
+   */
   private _ingredients:Ingredient[]=[];
 
   constructor(
@@ -25,18 +42,39 @@ export class ShoppingListPage {
     private _validatorSrv:ModelValidationService,
     private _toastWrp:ToastWrapper)
   {
+    //by default binds to a new empty ingredient,
+    //so the user can just start creating new
+    //ingredients easily
     this._ingredient = this._shoppingListSrv.getNewIngredient();
   }
 
+  /**
+   * Performs loading of ingredients
+   * data needed to show the list
+   * on the page.
+   */
   ionViewWillEnter(){
-    this.loadIngredients();
+    this._loadIngredients();
   }
 
-  private loadIngredients(){
+  /**
+   * Performs loading of ingredients
+   * by getting data from the ShoppingList
+   * Service.
+   */
+  private _loadIngredients(){
     this._ingredients = this._shoppingListSrv.getIngredients();
   }
 
-  private addIngredient(){
+  /**
+   * Add a new ingredient to the list
+   * when valid, or shows validation
+   * messages to the user.
+   * Then binds the form to a new
+   * empty ingredient instance.
+   * @private
+   */
+  private _addIngredient(){
     let self = this;
 
     //forces the cast to number, for some reason the input form
@@ -45,13 +83,16 @@ export class ShoppingListPage {
     this._ingredient.amount = parseInt(this._ingredient.amount.toString());
 
     this._validatorSrv.whenValid(this._ingredient, ()=>{
-        self._ui.isModelValid = true;
         let result:boolean = this._shoppingListSrv.addIngredient(this._ingredient);
         let message:string;
 
         if(result){
+          //reloads the list to show the update
+          this._loadIngredients();
+
+          //binds the form to a new empty ingredient
+          //to edit a new one
           this._ingredient = this._shoppingListSrv.getNewIngredient();
-          this.loadIngredients(); //reloads the list to show the update
 
           message = 'Ingredient added';
           this._toastWrp.info(message);
@@ -61,13 +102,19 @@ export class ShoppingListPage {
           this._toastWrp.warn(message);
         }
       },
-      err=>{/*alredy logged*/}
+      err=>{/* validation messages already displayed on UI */}
       );
   }
 
-  private removeIngredient(ingredient:Ingredient){
+  /**
+   * Remove the selected ingredient from
+   * the list and reloads it on UI.
+   * @param ingredient
+   * @private
+   */
+  private _removeIngredient(ingredient:Ingredient){
     this._shoppingListSrv.removeIngredient(ingredient);
-    this.loadIngredients();
+    this._loadIngredients();
   }
 
 

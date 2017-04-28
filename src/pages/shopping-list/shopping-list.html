@@ -8,7 +8,7 @@
       </button>
     </ion-buttons>
     <ion-buttons end>
-      <button (click)="_ui.displayForm=true" ion-button icon-only>
+      <button (click)="_displayForm=true" ion-button icon-only>
         <ion-icon name="add"></ion-icon>
       </button>
     </ion-buttons>
@@ -19,7 +19,7 @@
 
 
 <ion-content scroll="false" padding>
-  <form #f="ngForm" *ngIf="_ui.displayForm">
+  <form #f="ngForm" *ngIf="_displayForm">
     <ion-list>
       <ion-item>
         <ion-label fixed>Name</ion-label>
@@ -45,19 +45,19 @@
       </ion-item>
     </ion-list>
     <button
-      (click)="addIngredient()"
+      (click)="_addIngredient()"
       ion-button
       type="submit">
       Add New Ingredient
     </button>
     <button
-      (click)="_ui.displayForm=false"
+      (click)="_displayForm=false"
       ion-button color="light">
       Close
     </button>
   </form>
 
-  <ion-list [ngClass]="{shoppingListShort: _ui.displayForm==true}">
+  <ion-list [ngClass]="{shoppingListShort: _displayForm==true}">
     <ion-item-sliding *ngFor="let ingredient of _ingredients">
       <button ion-item  text-wrap>
         <ion-row>
@@ -70,13 +70,13 @@
         </ion-row>
       </button>
       <ion-item-options>
-        <button (click)="removeIngredient(ingredient)" ion-button color="danger">
+        <button (click)="_removeIngredient(ingredient)" ion-button color="danger">
           <ion-icon name="trash"></ion-icon>
           Delete
         </button>
       </ion-item-options>
     </ion-item-sliding>
-    <p text-center *ngIf="_ingredients.length==0 && !_ui.displayForm">No ingredients yet.</p>
+    <p text-center *ngIf="_ingredients.length==0 && !_displayForm">No ingredients yet.</p>
   </ion-list>
 
 </ion-content>

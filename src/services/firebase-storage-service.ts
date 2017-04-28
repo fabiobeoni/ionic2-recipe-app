@@ -3,23 +3,36 @@ import {Injectable} from '@angular/core';
 import { Http, Response } from '@angular/http';
 import 'rxjs/add/operator/map';
 
+/**
+ * Provides a service to easily interact
+ * with the Firebase Storage remote service
+ * and perform file upload and download.
+ */
 @Injectable()
 export class FirebaseStorageService {
 
-  private // Create a storage reference from our storage service
+  // Create a storage reference from our storage service
   private _storageSrv:firebase.storage.Storage;
 
   constructor(private _http:Http){
     this._storageSrv = firebase.storage();
   }
 
+  /**
+   * Uploads a file to the Firebase Storage service.
+   * While uploading, the client can use the callback
+   * to be aware of upload status changes.
+   * @param url
+   * @param content
+   * @param stateChangeCallback
+   */
   uploadFile(
     url:string,
-    content:string,
+    content:any,
     stateChangeCallback:(progress:number,state:string,snapshotUrl:string,error:firebase.FirebaseError)=>void
   ):
   void{
-    let uploadTask:firebase.storage.UploadTask = this._storageSrv.ref(url).putString(content);
+    let uploadTask:firebase.storage.UploadTask = this._storageSrv.ref(url).put(content);
 
     // Listen for state changes, errors, and completion of the upload.
     uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED,
@@ -39,15 +52,20 @@ export class FirebaseStorageService {
       });
   }
 
-  downloadFile(url:string,callback:(json:any,err:Error)=>void):void{
+  /**
+   * Downloads the given file from Firebase Storage
+   * service.
+   * @param url
+   * @param callback
+   */
+  downloadFile(url:string,callback:(data:any,err:Error)=>void):void{
     let self = this;
     this._storageSrv.ref(url).getDownloadURL()
       .then(url=>{
         self._http.get(url)
-          .map((res:Response) => res.json())
-          .subscribe(
-            data=>{
-              callback(data,null);
+          //.map((res:Response) => res.json())
+          .subscribe((response:Response)=>{
+              callback(response.text(),null);
             },
             err=>{callback(null,err)}
           );
