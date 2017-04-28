@@ -1,10 +1,10 @@
 import {Recipe} from "../models/recipe";
 import {Storage} from '@ionic/storage';
-import {AppModule} from "../app/app.module";
 import {ModelValidationService} from "./model-validation-service";
 import {Ingredient} from "../models/ingradient";
 import {Injectable} from "@angular/core";
 import {JsonCast} from "../utils/json-cast";
+import {IonicStorageWrapperService} from "./ionic-storage-wrapper-service";
 
 /**
  * Provides a service to manage
@@ -35,8 +35,11 @@ export class RecipeService{
 
   //TODO: in Ionic docs they say that the Storage should not be manually initialized, but instead injected.
   //But I could not make it working by injection... check why.
-  constructor(private validator:ModelValidationService){
-    this._storage = new Storage({name:AppModule.DB_NAME});
+  constructor(
+    private validator:ModelValidationService,
+    private storageWrp:IonicStorageWrapperService)
+  {
+    this._storage = storageWrp.storage;
   }
 
   /**

@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import {Ingredient} from "../../models/ingradient";
 import {ShoppingListService} from "../../services/shopping-list-service";
-import {ToastController} from "ionic-angular";
 import {ModelValidationService} from "../../services/model-validation-service";
 import {ToastWrapper} from "../../utils/toast-wrp";
 

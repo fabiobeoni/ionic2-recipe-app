@@ -16,6 +16,7 @@ import {RecipeEditPage} from "../pages/recipe-edit/recipe-edit";
 import {RecipesPage} from "../pages/recipes/recipes";
 import {ShoppingListPage} from "../pages/shopping-list/shopping-list";
 import {ToastWrapper} from "../utils/toast-wrp";
+import {IonicStorageWrapperService} from "../services/ionic-storage-wrapper-service";
 
 @NgModule({
   declarations: [
@@ -43,7 +44,13 @@ import {ToastWrapper} from "../utils/toast-wrp";
   ],
   providers: [
     {provide: ErrorHandler, useClass: IonicErrorHandler},
-    FirebaseAuthService, FirebaseStorageService, ShoppingListService, RecipeService, ModelValidationService, ToastWrapper
+    IonicStorageWrapperService,
+    FirebaseAuthService,
+    FirebaseStorageService,
+    ShoppingListService,
+    RecipeService,
+    ModelValidationService,
+    ToastWrapper
   ]
 })
 export class AppModule {
