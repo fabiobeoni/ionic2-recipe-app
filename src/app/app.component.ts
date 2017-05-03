@@ -5,6 +5,7 @@ import {FirebaseAuthService} from "../services/firebase-auth-service";
 import { TabsPage } from '../pages/tabs/tabs';
 import {AuthPage} from "../pages/auth/auth";
 import {BackupPage} from "../pages/backup/backup";
+import {ToastWrapper} from "../utils/toast-wrp";
 
 
 @Component({
@@ -33,7 +34,9 @@ export class MyApp {
   constructor(
     private _platform: Platform,
     private _menuCtrl:MenuController,
-    private _firebaseAuthSrv:FirebaseAuthService)
+    private _firebaseAuthSrv:FirebaseAuthService,
+    private _toastWrp:ToastWrapper
+  )
   {
 
     let self = this;
@@ -41,9 +44,9 @@ export class MyApp {
     //not really needed here unless you want
     //to use the auth to change app behaviours,
     //in case the menu items
-    _firebaseAuthSrv.onAuthStateChance=()=>{
+    _firebaseAuthSrv.subscribeAuthStateChange(()=>{
       self._isUserAuthenticated = _firebaseAuthSrv.isUserAuthenticated;
-    };
+    });
 
     _firebaseAuthSrv.initialize();
 
@@ -57,12 +60,12 @@ export class MyApp {
 
   /**
    * Loads the provided page component
-   * as root page, then closes the app menu.
+   * as root page, then closes the app menu
    * @param page
    * @private
    */
   private _displayPage(page:Component){
-    this._nav.setRoot(page);
+    this._nav.push(page);
     this._menuCtrl.close();
   }
 
@@ -73,7 +76,14 @@ export class MyApp {
    * @private
    */
   private _logout():void{
-    this._firebaseAuthSrv.logout();
-    this._displayPage(this._tabsPage);
+    let self = this;
+    this._firebaseAuthSrv.logout()
+      .then(()=>{
+        this._menuCtrl.close();
+      })
+      .catch(err=>{
+        self._toastWrp.warn(err.message);
+      });
+
   }
 }

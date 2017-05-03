@@ -3,6 +3,8 @@ import {NgForm} from "@angular/forms";
 import {FirebaseAuthService} from "../../services/firebase-auth-service";
 import {LoadingController, MenuController, NavController} from "ionic-angular";
 import {BackupPage} from "../backup/backup";
+import {ToastWrapper} from "../../utils/toast-wrp";
+import {TabsPage} from "../tabs/tabs";
 
 
 /*
@@ -27,8 +29,8 @@ export class AuthPage {
   constructor(
     private _authSrv:FirebaseAuthService,
     private _loadingCtrl:LoadingController,
-    private _menuCtrl:MenuController,
-    private _navCtrl:NavController
+    private _navCtrl:NavController,
+    private _toastWrp:ToastWrapper
   ){}
 
 
@@ -41,13 +43,6 @@ export class AuthPage {
    */
   _authenticate(form:NgForm, selectedBehaviour:string){
 
-    //authentication method options,
-    // login or register and login
-    let authBehaviours = {
-      signup:this._authSrv.signup,
-      signin:this._authSrv.signin
-    };
-
     //displays a loading message to the user
     let loadingWin = this._loadingCtrl.create({
       content:'In progress, please wait...'
@@ -56,18 +51,17 @@ export class AuthPage {
     loadingWin.present();
 
     //starts the auth...
-    authBehaviours[selectedBehaviour](form.value.email,form.value.password)
+    this._authSrv[selectedBehaviour](form.value.email,form.value.password)
       //user registered and/or logged-in
       .then(data=>{
         loadingWin.dismiss();
-        this._menuCtrl.close();
+        this._message = 'You are logged-in.';
         //TODO:check why using navCtr.push() breaks the BackupPage status
-        //this._navCtrl.push(BackupPage);
+        this._navCtrl.push(BackupPage);
       })
       .catch(error=>{
-        console.error(error);
         loadingWin.dismiss();
-        this._message = error.message;
+        this._toastWrp.warn(error.message);
       });
   }
 

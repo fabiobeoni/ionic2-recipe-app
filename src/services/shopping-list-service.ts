@@ -20,73 +20,113 @@ export class ShoppingListService{
    */
   private readonly SHOPPING_LIST_KEY:string = 'shoppinglist';
 
-  private _ingredients:any[] = [];
-
+  /**
+   * Local instance of the Ionic Storage
+   * service to save data on database
+   */
   private _storage:Storage;
 
   constructor(private storageWrp:IonicStorageWrapperService){
     this._storage = storageWrp.storage;
   }
 
-  getIngredients():Ingredient[]{
-    return this._ingredients.slice();
-  }
-
-  /*
-  getIngredients(callback:(recipes:Ingredient[],err:Error)=>void):void{
-    let srv = this;
+  /**
+   * Reads ingredients from database
+   * and returns them as typed list
+   * of objects.
+   * @param callback
+   */
+  getIngredients(callback:(ingredients:Ingredient[],err:Error)=>void):void{
     this._storage.get(this.SHOPPING_LIST_KEY)
       .then(data => {
-        if(data) srv._ingredients = (JsonCast.castMany<Ingredient>(data,Ingredient));
+        let ingredients:Ingredient[] = [];
 
-        callback(srv._ingredients.slice(),null);
+        if(data)
+          ingredients = (JsonCast.castMany<Ingredient>(data,Ingredient));
+
+        callback(ingredients,null);
       })
       .catch(err=>{
         console.error(err);
         callback(null,err);
       });
   }
-  */
 
+  /**
+   * Creates a new ingredient with basic
+   * initialization logic. The ingredient
+   * is not saved on storage.
+   * @returns {Ingredient}
+   */
   getNewIngredient():Ingredient{
     return Ingredient.factory('Ingredient Name',0);
-  }
-
-  getIngredientIndex(ingredient:Ingredient):number{
-    return this._ingredients.findIndex(o=>o.name==ingredient.name);
   }
 
   /**
    * Add the given ingredient to the list if
    * the ingredient is unique in the list.
+   * Then saves the changes to the database.
    * @param ingredient {Ingredient}
+   * @param ingredientsList
+   * @param callback
    * @returns {boolean} : false if the ingredient is already present in the list.
    */
-  addIngredient(ingredient:Ingredient):boolean {
-    let exists = this._ingredients.find(o=>o.name.trim().toLocaleLowerCase()==ingredient.name.trim().toLocaleLowerCase());
+  addIngredient(ingredient:Ingredient,ingredientsList:Ingredient[],callback:(err:Error)=>void):void {
+    let exists = ingredientsList.find(o=>o.name.trim().toLocaleLowerCase()==ingredient.name.trim().toLocaleLowerCase());
     if(!exists){
-      this._ingredients.push(ingredient);
-      return true;
+      ingredientsList.push(ingredient);
+      this.save(ingredientsList,callback);
     }
-    else
-      return false;
+    else callback(new Error(`The ingredient ${ingredient.name} is in the list already.`));
   }
 
-  addIngredients(ingredients:Ingredient[]){
-    this._ingredients.push(...ingredients);
+  /**
+   * Adds a list of ingredients to the
+   * stored ingredients on database.
+   * @param ingredients
+   * @param callback
+   */
+  addIngredients(ingredients:Ingredient[],callback:(err:Error)=>void){
+    let self = this;
+    this.getIngredients((list,err)=>{
+      if(err) return callback(err);
+
+      list.push(...ingredients);
+
+      self.save(list,callback);
+    });
   }
 
-  removeIngredient(ingredient:Ingredient){
-    let index = this.getIngredientIndex(ingredient);
-    this._ingredients.splice(index,1);
+  /**
+   * Writes all given ingredients
+   * in the database by replicing
+   * any existing.
+   * @param ingredients
+   * @param callback
+   */
+  setIngredients(ingredients:Ingredient[],callback:(err:Error)=>void){
+    this.save(ingredients,callback);
+  }
+
+  /**
+   * Removes the given ingredient from the list
+   * and saves the changes on database.
+   * @param ingredient
+   * @param ingredientsList
+   * @param callback
+   */
+  removeIngredient(ingredient:Ingredient,ingredientsList:Ingredient[],callback:(err:Error)=>void){
+    ingredientsList.splice(ingredientsList.findIndex(o=>o.name.toLowerCase()==ingredient.name.toLowerCase()),1);
+    this.save(ingredientsList,callback);
   }
 
   /**
    * Saves changes to the database.
+   * @param ingredients
    * @param callback
    */
-  private save(callback: (err:Error) => void):void {
-    this._storage.set(this.SHOPPING_LIST_KEY, this._ingredients)
+  private save(ingredients:Ingredient[],callback: (err:Error) => void):void {
+    this._storage.set(this.SHOPPING_LIST_KEY, ingredients)
       .then(data => {
         callback(null);
       })

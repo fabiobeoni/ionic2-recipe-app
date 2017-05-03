@@ -22,13 +22,6 @@ export class RecipeService{
   private readonly RECIPES_KEY = 'recipes';
 
   /**
-   * Local copy of recipes read from db
-   * @type {Array}
-   * @private
-   */
-  private _recipes:Recipe[] =[];
-
-  /**
    * Instance of the Ionic Storage
    */
   private _storage:Storage;
@@ -43,30 +36,34 @@ export class RecipeService{
   }
 
   /**
-   * Loads all recipes data from
-   * the database.
-   * @param callback
-   */
-  getRecipes(callback:(recipes:Recipe[],err:Error)=>void):void{
-    let srv = this;
-    this._storage.get(this.RECIPES_KEY)
-      .then(data => {
-        if(data) srv._recipes = (JsonCast.castMany<Recipe>(data,Recipe));
-
-        callback(srv._recipes.slice(),null);
-      })
-      .catch(err=>{
-        console.error(err);
-        callback(null,err);
-      });
-  }
-
-  /**
    * Creates a new recipe for editing.
    * @returns {Recipe}
    */
   getNewRecipe():Recipe{
     return Recipe.factory();
+  }
+
+  /**
+   * Loads all recipes data from
+   * the database.
+   * @param callback
+   */
+  getRecipes(callback:(recipes:Recipe[],err:Error)=>void):void{
+    this._storage.get(this.RECIPES_KEY)
+      .then(data => {
+        let recipes:Recipe[];
+
+        if(data)
+          recipes = (JsonCast.castMany<Recipe>(data,Recipe));
+        else
+          recipes = [];
+
+        return callback(recipes,null);
+      })
+      .catch(err=>{
+        console.error(err);
+        return callback(null,err);
+      });
   }
 
   /**
@@ -76,8 +73,7 @@ export class RecipeService{
    * @param callback
    */
   setRecipes(recipes:Recipe[], callback:(err:Error)=>void){
-    this._recipes = recipes;
-    this.save(callback);
+    this.save(recipes,callback);
   };
 
   /**
@@ -93,18 +89,18 @@ export class RecipeService{
     this.validator.whenValid(recipe,
       //success callback
       ()=> {
-        let exists = srv._recipes.find(o=>o.id==recipe.id);
-        if(!exists){
-          srv._recipes.push(recipe);
-
-          //stores data on with storage
-          srv.save(err=>{
-            if(err) //rollback locally
-              srv._recipes.splice(srv._recipes.indexOf(recipe),1);
-
-            callback(err);
-          });
-        }
+        srv.getRecipes((recipes:Recipe[],err:Error)=>{
+          if(!err){
+            let exists = recipes.find(o=>o.title==recipe.title);
+            if(!exists){
+              recipes.push(recipe);
+              //stores data on with storage
+              srv.save(recipes, callback);
+            }
+            else return callback(new Error(`Recipe "${recipe.title}" already exists.`));
+          }
+          else return callback(err);
+        });
       },
       //fail callback
       callback
@@ -121,7 +117,19 @@ export class RecipeService{
     let srv = this;
     this.validator.whenValid(recipe,
       //success callback
-      ()=> {srv.save(callback);},
+      ()=> {
+        srv.getRecipes((recipes:Recipe[],err:Error)=>{
+          if(!err){
+            let recipeToUpdate:Recipe = recipes.find(o=>o.id==recipe.id);
+            let indexToUpdate:number = recipes.indexOf(recipeToUpdate);
+            //replaces the instance
+            recipes[indexToUpdate] = recipe;
+            //saves it on database
+            srv.save(recipes,callback);
+          }
+          else return callback(err);
+        });
+      },
       //fail callback
       callback
     );
@@ -136,14 +144,10 @@ export class RecipeService{
    * @param callback
    */
   removeRecipe(recipe:Recipe,callback: (err: Error) => void):void{
-    let srv = this;
-    let index = this._recipes.findIndex(o=>o.id==recipe.id);
-    this._recipes.splice(index,1);
-    this.save(err=>{
-      if(err) //rollback locally
-        srv._recipes.push(recipe);
-
-      callback(err);
+    this.getRecipes((recipes:Recipe[],err:Error)=>{
+      let index = recipes.findIndex(o=>o.id==recipe.id);
+      recipes.splice(index,1);
+      this.save(recipes,callback);
     });
   }
 
@@ -189,8 +193,8 @@ export class RecipeService{
    * Saves changes to the database.
    * @param callback
    */
-  private save(callback: (err:Error) => void):void {
-    this._storage.set(this.RECIPES_KEY, this._recipes)
+  private save(recipes:Recipe[],callback: (err:Error) => void):void {
+    this._storage.set(this.RECIPES_KEY, recipes)
       .then(data => {
         callback(null);
       })

@@ -1,3 +1,6 @@
+//Utility to add String.format function to Typescript
+//string object.
+
 interface String {
   format(...replacements: string[]): string;
 }

@@ -28,11 +28,11 @@ export class FirebaseStorageService {
    */
   uploadFile(
     url:string,
-    content:any,
+    content:string,
     stateChangeCallback:(progress:number,state:string,snapshotUrl:string,error:firebase.FirebaseError)=>void
   ):
   void{
-    let uploadTask:firebase.storage.UploadTask = this._storageSrv.ref(url).put(content);
+    let uploadTask:firebase.storage.UploadTask = this._storageSrv.ref(url).putString(content);
 
     // Listen for state changes, errors, and completion of the upload.
     uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED,

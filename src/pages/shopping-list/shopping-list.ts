@@ -62,7 +62,11 @@ export class ShoppingListPage {
    * Service.
    */
   private _loadIngredients(){
-    this._ingredients = this._shoppingListSrv.getIngredients();
+    let self = this;
+    this._shoppingListSrv.getIngredients((list,err)=>{
+      if(!err) self._ingredients = list;
+      else self._toastWrp.warn(err.message);
+    });
   }
 
   /**
@@ -82,27 +86,16 @@ export class ShoppingListPage {
     this._ingredient.amount = parseInt(this._ingredient.amount.toString());
 
     this._validatorSrv.whenValid(this._ingredient, ()=>{
-        let result:boolean = this._shoppingListSrv.addIngredient(this._ingredient);
-        let message:string;
-
-        if(result){
-          //reloads the list to show the update
-          this._loadIngredients();
+        this._shoppingListSrv.addIngredient(this._ingredient,this._ingredients,(err)=>{
+          if(err) return self._toastWrp.warn(err.message);
 
           //binds the form to a new empty ingredient
           //to edit a new one
-          this._ingredient = this._shoppingListSrv.getNewIngredient();
-
-          message = 'Ingredient added';
-          this._toastWrp.info(message);
-        }
-        else{
-          message = 'Ingredient is already available in the list';
-          this._toastWrp.warn(message);
-        }
+          self._ingredient = this._shoppingListSrv.getNewIngredient();
+          self._toastWrp.info('New ingredient in the list', ToastWrapper.LENGTH_SHORT);
+        });
       },
-      err=>{/* validation messages already displayed on UI */}
-      );
+      err=>{});/* validation messages already displayed on UI */
   }
 
   /**
@@ -112,8 +105,10 @@ export class ShoppingListPage {
    * @private
    */
   private _removeIngredient(ingredient:Ingredient){
-    this._shoppingListSrv.removeIngredient(ingredient);
-    this._loadIngredients();
+    let self = this;
+    this._shoppingListSrv.removeIngredient(ingredient,this._ingredients,(err)=>{
+      if(err) self._toastWrp.warn(err.message);
+    });
   }
 
 

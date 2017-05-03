@@ -8,6 +8,11 @@ import firebase from 'firebase';
  */
 export class FirebaseAuthService {
 
+
+  private _auth:firebase.auth.Auth;
+
+  private _authStateChangedSubscribers:any[]=[];
+
   /**
    * Returns true when the user has
    * an active session with the Firebase
@@ -36,12 +41,27 @@ export class FirebaseAuthService {
   /**
    * Returns true when the user has
    * an active session with the Firebase
-   * backend service.
+   * backend service
    * @type {boolean}
    * @private
    */
   get isUserAuthenticated(): boolean {
     return this._isUserAuthenticated;
+  }
+
+  subscribeAuthStateChange(callback:any):any{
+    this._authStateChangedSubscribers.push(callback);
+    return callback;
+  }
+
+  unscribeAuthStateChange(callback:void):void{
+    let index = this._authStateChangedSubscribers.indexOf(callback);
+    this._authStateChangedSubscribers.splice(index,1);
+  }
+
+  private fireAuthStateChange():void{
+    for(let callback of this._authStateChangedSubscribers)
+      callback();
   }
 
   /**
@@ -64,31 +84,17 @@ export class FirebaseAuthService {
       messagingSenderId: "178926283871"
     });
 
+    this._auth = firebase.auth();
 
-    firebase.auth().onAuthStateChanged((user)=>{
+    this._auth.onAuthStateChanged((user)=>{
       srv._user = user;
       srv._isUserAuthenticated = (user!=undefined&&user!=null);
-      srv.onAuthStateChance();
+
+      console.log('State change invoked on _auth, user = ' + user);
+
+      srv.fireAuthStateChange();
     });
-
-    this.onInitializationCompleted();
   }
-
-  /**
-   * Invoked when Firebase initialization
-   * is completed. The client of this service
-   * can attach an handler to this get
-   * notified.
-   */
-  onInitializationCompleted():void{};
-
-  /**
-   * Invoked when Firebase session
-   * state changes. The client of this service
-   * can attach an handler to this get
-   * notified.
-   */
-  onAuthStateChance():void{};
 
   /**
    * Register a new account on
@@ -100,7 +106,7 @@ export class FirebaseAuthService {
    * @returns {firebase.Promise<any>}
    */
   signup(email:string,password:string):firebase.Promise<any>{
-    return firebase.auth().createUserWithEmailAndPassword(email,password);
+    return this._auth.createUserWithEmailAndPassword(email,password);
   }
 
   /**
@@ -111,13 +117,14 @@ export class FirebaseAuthService {
    * @returns {firebase.Promise<any>}
    */
   signin(email:string,password:string):firebase.Promise<any>{
-    return firebase.auth().signInWithEmailAndPassword(email,password);
+    return this._auth.signInWithEmailAndPassword(email,password);
   }
 
   /**
    * Closes the session with Firebase service.
+   * @returns {firebase.Promise<any>}
    */
-  logout():void{
-    firebase.auth().signOut();
+  logout():firebase.Promise<any>{
+    return this._auth.signOut();
   }
 }

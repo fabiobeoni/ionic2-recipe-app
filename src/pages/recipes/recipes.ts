@@ -61,6 +61,7 @@ export class RecipesPage {
       if(!err) this._recipes = recipes;
       else this._toastWrp.info(err.message,ToastWrapper.LENGTH_LONG);
     });
+
   }
 
   /**
@@ -74,11 +75,16 @@ export class RecipesPage {
   private _addIngredientsToShoppingList(ingredients:Ingredient[], ev):void{
     ev.stopPropagation();
 
-    this._shoppingListSrv.addIngredients(ingredients);
-    this._toastWrp.info(
-      `${ingredients.length} ingredients added to shopping list.`,
-      ToastWrapper.LENGTH_SHORT
-    );
+    let self = this;
+    this._shoppingListSrv.addIngredients(ingredients,(err)=>{
+      if(!err)
+        self._toastWrp.info(
+          `${ingredients.length} ingredients added to shopping list.`,
+          ToastWrapper.LENGTH_SHORT
+        );
+      else
+        self._toastWrp.warn(err.message);
+    });
   }
 
   /**

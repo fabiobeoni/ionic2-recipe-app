@@ -5,6 +5,9 @@ import {RecipeService} from "../../services/recipe-service";
 import {Recipe} from "../../models/recipe";
 import {JsonCast} from "../../utils/json-cast";
 import {ToastWrapper} from "../../utils/toast-wrp";
+import {ShoppingListService} from "../../services/shopping-list-service";
+import {Ingredient} from "../../models/ingradient";
+import {NavController, NavOptions} from "ionic-angular";
 
 @Component({
   selector: 'page-backup',
@@ -48,10 +51,13 @@ export class BackupPage {
    */
   private _canBackup:boolean = false;
 
+
   constructor(
     private _firebaseAuthSrv:FirebaseAuthService,
     private _firebaseStorageSrv:FirebaseStorageService,
+    private _nav:NavController,
     private _recipeSrv:RecipeService,
+    private _shoppingSrv:ShoppingListService,
     private _ngZone:NgZone,
     private _toastWrp:ToastWrapper)
   {}
@@ -59,9 +65,10 @@ export class BackupPage {
   //Registers the Firebase auth state change handler.
   ionViewDidLoad(){
     let self = this;
-    this._firebaseAuthSrv.onAuthStateChance=()=>{
+
+    this._firebaseAuthSrv.subscribeAuthStateChange(()=>{
       self._authChangeHandler();
-    };
+    });
 
     this._authChangeHandler();
   }
@@ -87,46 +94,59 @@ export class BackupPage {
    */
   private _performBackup():void{
     let self = this;
+    let backup = {
+      recipes:[],
+      shopping:[]
+    };
+
+    this._message = '';
+
+    this._recipeSrv.getRecipes((list,err)=>{
+      if(err) self._toastWrp.warn(err.message);
+
+      (list!=null) ? backup.recipes = list : backup.recipes = [];
+
+      self._shoppingSrv.getIngredients((list,err)=>{
+        if(err) self._toastWrp.warn(err.message);
+
+        (list!=null) ? backup.shopping = list : backup.shopping = [];
+
+        if(backup.recipes.length==0 && backup.shopping.length==0)
+        {
+          self._toastWrp.warn('You don\'t have recipes or shopping list to backup.');
+          return;
+        }
+
+        //serialises the data to JSON to store
+        //all of them at once as a single Firebase
+        //storage object
+        let fileContent:string = JSON.stringify(backup);
+
+        //gets teh Firebase reference URL of the backup
+        //for the current logged user
+        let uploadUrl:string = self._getRecipesBackupURL();
+
+        //performs the bakup sending the file
+        //to Firebase Storage
+        self._firebaseStorageSrv.uploadFile(
+          uploadUrl,
+          fileContent,
+          //this is the task process change callback,
+          //printing to the UI the task status
+          (progress:number,state:string,shapshotUrl:string,error:firebase.FirebaseError)=>{
+            self._progress = progress;
+            self._status = state;
+            if(error) self._message = error.message;
+
+            //when task is completed...
+            if(self._progress==100) self._message = 'Backup completed.';
+          }
+        );
+      });
+    });
 
     //loads the list of recipes to backup from the
     //local database
-    this._recipeSrv.getRecipes((recipes:Recipe[],err:Error)=>{
-      if(!err){
-        if(recipes.length>0)
-        {
-          self._message = 'Backup started, please wait...';
-
-          //serialises the data to JSON to store
-          //all of them at once as a single Firebase
-          //storage object
-          let fileContent:string = JSON.stringify(recipes);
-
-          //gets teh Firebase reference URL of the backup
-          //for the current logged user
-          let uploadUrl:string = self._getBackupURL();
-
-          //performs the bakup sending the file
-          //to Firebase Storage
-          self._firebaseStorageSrv.uploadFile(
-            uploadUrl,
-            fileContent,
-            //this is the task process change callback,
-            //printing to the UI the task status
-            (progress:number,state:string,shapshotUrl:string,error:firebase.FirebaseError)=>{
-              self._progress = progress;
-              self._status = state;
-              if(error) self._message = error.message;
-
-              //when task is completed...
-              if(self._progress==100) self._message = 'Backup completed.';
-            }
-          );
-        }
-        else self._toastWrp.warn('You don\'t have any recipe yet to backup.');
-      }
-      else
-        self._message = err.message;
-    });
   }
 
   /**
@@ -143,11 +163,11 @@ export class BackupPage {
 
     //starts downloading the file from Firebase
     this._firebaseStorageSrv.downloadFile(
-      this._getBackupURL(),
+      this._getRecipesBackupURL(),
       //this is the download task status change handler
-      (data:any,downloadErr:Error)=>{
+      (backup:any,downloadErr:Error)=>{
 
-        data = JSON.parse(data);
+        backup = JSON.parse(backup);
 
         //ngZone.run() is needed to make angular update
         //the view since the _message field is updated
@@ -163,19 +183,23 @@ export class BackupPage {
             //library to work properly. Unfortunately this util
             //does not cast nested objects, but for the scope of
             //this sample app is enough.
-            let recipes:Recipe[] = JsonCast.castMany<Recipe>(data,Recipe);
+            let recipes:Recipe[] = JsonCast.castMany<Recipe>(backup.recipes,Recipe);
             if(recipes.length>0)
               self._recipeSrv.setRecipes(recipes,(storingErr:Error)=>{
-                if(!storingErr) self._message = 'Restoring completed.';
-                else self._message = storingErr.message;
+                if(!storingErr)
+                  self._nav.popToRoot();
+                else
+                  self._toastWrp.warn(storingErr.message);
               });
-            //this case should never happen since backup can be created
-            //only when recipes are available, but the admin of Firebase
-            //could clean up the file remotely
-            else {
-              self._message = '';
-              self._toastWrp.warn('Your backup it\'s empty!');
-            }
+
+            let ingredients:Ingredient[] = JsonCast.castMany<Ingredient>(backup.shopping,Ingredient);
+            if(ingredients.length>0)
+              self._shoppingSrv.setIngredients(ingredients,(storingErr:Error)=>{
+                if(!storingErr)
+                  self._nav.popToRoot();
+                else
+                  self._toastWrp.warn(storingErr.message);
+              });
           }
           else self._message = downloadErr.message;
         });
@@ -188,7 +212,7 @@ export class BackupPage {
    * @returns {string}
    * @private
    */
-  private _getBackupURL():string {
+  private _getRecipesBackupURL():string {
     let user: firebase.User = this._firebaseAuthSrv.user;
     return this.BACKUP_URL.format(user.uid);
   }
