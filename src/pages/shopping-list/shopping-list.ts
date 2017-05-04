@@ -3,6 +3,8 @@ import {Ingredient} from "../../models/ingradient";
 import {ShoppingListService} from "../../services/shopping-list-service";
 import {ModelValidationService} from "../../services/model-validation-service";
 import {ToastWrapper} from "../../utils/toast-wrp";
+import {Events} from "ionic-angular";
+import {BackupPage} from "../backup/backup";
 
 
 @Component({
@@ -39,12 +41,22 @@ export class ShoppingListPage {
   constructor(
     private _shoppingListSrv:ShoppingListService,
     private _validatorSrv:ModelValidationService,
-    private _toastWrp:ToastWrapper)
+    private _toastWrp:ToastWrapper,
+    private _events:Events)
   {
     //by default binds to a new empty ingredient,
     //so the user can just start creating new
     //ingredients easily
     this._ingredient = this._shoppingListSrv.getNewIngredient();
+
+    //after restoring the ingredients backup (BackupPage)
+    //an event is fired to inform this page that is again
+    //on root view and it has to perform a data loading
+    //to update the list of ingredients that normally is
+    //loaded only on viewWillEnter
+    this._events.subscribe(BackupPage.SHOPPINGLIST_RESTORED_EVENT,()=>{
+      this._loadIngredients();
+    });
   }
 
   /**

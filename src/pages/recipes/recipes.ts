@@ -6,7 +6,8 @@ import {ToastWrapper} from "../../utils/toast-wrp";
 import {RecipeDifficultyOptions} from "../recipe-difficulty-options";
 import {ShoppingListService} from "../../services/shopping-list-service";
 import {Ingredient} from "../../models/ingradient";
-import {LoadingController} from "ionic-angular";
+import {Events, LoadingController} from "ionic-angular";
+import {BackupPage} from "../backup/backup";
 
 
 @Component({
@@ -35,33 +36,47 @@ export class RecipesPage {
     private _recipeSrv:RecipeService,
     private _toastWrp: ToastWrapper,
     private _shoppingListSrv:ShoppingListService,
-    private _loadingCtrl:LoadingController
-  ) {}
+    private _loadingCtrl:LoadingController,
+    private _events:Events
+  ) {
+
+    //after restoring the recipes backup (BackupPage)
+    //an event is fired to inform this page that is again
+    //on root view and it has to perform a data loading
+    //to update the list of recipes that normally is
+    //loaded only on viewWillEnter
+    this._events.subscribe(BackupPage.RECIPES_RESTORED_EVENT,()=>{
+      this._loadRecipes();
+    });
+  }
+
+  ionViewWillEnter(){
+    this._loadRecipes();
+  }
 
   /**
    * Loads recipes data and shows
    * loading message to the user
    * if needed.
    */
-  ionViewWillEnter(){
-    let loading = this._loadingCtrl.create({content:'Reading data...'});
+  private _loadRecipes() {
+    let loading = this._loadingCtrl.create({content: 'Reading data...'});
 
     //if the data are not loaded from
     //the storage in less then half second,
     //them displays a loading to the user
-    setTimeout(()=>{
-      if(loading) loading.present();
-    },500);
+    setTimeout(() => {
+      if (loading) loading.present();
+    }, 500);
 
     //loads the recipes from the local database
-    this._recipeSrv.getRecipes((recipes:Recipe[],err:Error) => {
+    this._recipeSrv.getRecipes((recipes: Recipe[], err: Error) => {
       loading.dismiss();
       loading = null;
 
-      if(!err) this._recipes = recipes;
-      else this._toastWrp.info(err.message,ToastWrapper.LENGTH_LONG);
+      if (!err) this._recipes = recipes;
+      else this._toastWrp.info(err.message, ToastWrapper.LENGTH_LONG);
     });
-
   }
 
   /**

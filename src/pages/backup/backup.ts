@@ -7,13 +7,16 @@ import {JsonCast} from "../../utils/json-cast";
 import {ToastWrapper} from "../../utils/toast-wrp";
 import {ShoppingListService} from "../../services/shopping-list-service";
 import {Ingredient} from "../../models/ingradient";
-import {NavController, NavOptions} from "ionic-angular";
+import {Events, NavController, NavOptions} from "ionic-angular";
 
 @Component({
   selector: 'page-backup',
   templateUrl: 'backup.html'
 })
 export class BackupPage {
+
+  public static readonly RECIPES_RESTORED_EVENT:string = 'recipes-restored';
+  public static readonly SHOPPINGLIST_RESTORED_EVENT:string = 'shoppingList-restored';
 
   /**
    * The path of the Firebase resource storing the
@@ -51,7 +54,6 @@ export class BackupPage {
    */
   private _canBackup:boolean = false;
 
-
   constructor(
     private _firebaseAuthSrv:FirebaseAuthService,
     private _firebaseStorageSrv:FirebaseStorageService,
@@ -59,7 +61,8 @@ export class BackupPage {
     private _recipeSrv:RecipeService,
     private _shoppingSrv:ShoppingListService,
     private _ngZone:NgZone,
-    private _toastWrp:ToastWrapper)
+    private _toastWrp:ToastWrapper,
+  private _events:Events)
   {}
 
   //Registers the Firebase auth state change handler.
@@ -186,24 +189,39 @@ export class BackupPage {
             let recipes:Recipe[] = JsonCast.castMany<Recipe>(backup.recipes,Recipe);
             if(recipes.length>0)
               self._recipeSrv.setRecipes(recipes,(storingErr:Error)=>{
-                if(!storingErr)
-                  self._nav.popToRoot();
-                else
-                  self._toastWrp.warn(storingErr.message);
+                this.onRestoreCompleted(storingErr,BackupPage.RECIPES_RESTORED_EVENT);
               });
 
             let ingredients:Ingredient[] = JsonCast.castMany<Ingredient>(backup.shopping,Ingredient);
             if(ingredients.length>0)
               self._shoppingSrv.setIngredients(ingredients,(storingErr:Error)=>{
-                if(!storingErr)
-                  self._nav.popToRoot();
-                else
-                  self._toastWrp.warn(storingErr.message);
+                this.onRestoreCompleted(storingErr,BackupPage.SHOPPINGLIST_RESTORED_EVENT);
               });
           }
           else self._message = downloadErr.message;
         });
     });
+  }
+
+  /**
+   * Callback for data restore compleation
+   * informing the user about the result
+   * and requesting UI to reload with fresh
+   * data.
+   * @param storingErr
+   * @param eventName
+   */
+  private onRestoreCompleted(storingErr: Error, eventName:string) {
+    let self = this;
+    //when everything OK fires an event to inform
+    //other pages that can reload view to display
+    //fresh data from the restored backup
+    if (!storingErr)
+      this._nav.popToRoot().then(() => {
+        self._events.publish(eventName);
+      });
+    else
+      this._toastWrp.warn(storingErr.message);
   }
 
   /**
