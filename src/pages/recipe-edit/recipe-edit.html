@@ -21,15 +21,14 @@
         <ion-input [(ngModel)]="_recipe.title" name="title" type="text"></ion-input>
       </ion-item>
       <ion-item no-lines>
-        {{_validatorSrv.messageFor('title')}}
+        <span color="danger">{{_validatorSrv.messageFor('title')}}</span>
       </ion-item>
       <ion-item>
         <ion-label floating>Description</ion-label>
         <ion-textarea [(ngModel)]="_recipe.description" name="description"></ion-textarea>
-        <span class="field_helper"></span>
       </ion-item>
       <ion-item no-lines>
-        {{_validatorSrv.messageFor('description')}}
+        <span color="danger">{{_validatorSrv.messageFor('description')}}</span>
       </ion-item>
       <ion-item>
         <ion-label floating>Difficulty</ion-label>
@@ -51,7 +50,9 @@
         </ion-row>
       </ion-item>
     </ion-list>
-    <ion-item>{{_validatorSrv.messageFor('ingredients')}}</ion-item>
+    <ion-item>
+      <span color="danger">{{_validatorSrv.messageFor('ingredients')}}</span>
+    </ion-item>
 
     <button (click)="_save()" ion-button type="submit" block>Save</button>
 

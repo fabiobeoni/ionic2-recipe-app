@@ -23,11 +23,12 @@
       <ion-item detail-push
           *ngFor="let recipe of _recipes"
           [navPush]="_recipeEditPage"
-          [navParams]="{recipe:recipe}">
+          [navParams]="{recipe:recipe}"
+          text-wrap>
         <h2>{{recipe.title}}</h2>
         <ion-note>{{_getDifficultyOptionLabel(recipe.difficulty)}}</ion-note>
-        <button (click)="_addIngredientsToShoppingList(recipe.ingredients,$event)" ion-button icon-right item-right>
-          + Shop Ingredients
+        <button (click)="_addIngredientsToShoppingList(recipe.ingredients,$event)" ion-button icon-right item-right padding>
+          + Shop <br/>Ingredients
           <ion-icon name="basket"></ion-icon>
         </button>
       </ion-item>

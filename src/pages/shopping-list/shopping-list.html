@@ -30,7 +30,7 @@
         </ion-input>
       </ion-item>
       <ion-item no-lines>
-        {{_validatorSrv.messageFor('name')}}
+        <span color="danger">{{_validatorSrv.messageFor('name')}}</span>
       </ion-item>
       <ion-item>
         <ion-label fixed>Amount</ion-label>
@@ -41,7 +41,7 @@
         </ion-input>
       </ion-item>
       <ion-item no-lines>
-        {{_validatorSrv.messageFor('amount')}}
+        <span color="danger">{{_validatorSrv.messageFor('amount')}}</span>
       </ion-item>
     </ion-list>
     <button
