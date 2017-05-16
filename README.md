@@ -1,7 +1,8 @@
 
 <h2><strong>Recipes App</strong></h2>
 
-<p>App prototype developed as part of the graduation steps of the <a href="https://www.udemy.com/XXXXXXX" target="_blank"><strong>Ionic Apps Development</strong></a> course.</p>
+<p>App prototype developed as part of the course <a href="https://www.udemy.com/ionic-2-the-practical-guide-to-building-ios-android-apps/" target="_blank"><strong>Ionic 2 - The Practical Guide to Building iOS & Android Apps
+</strong></a>.</p>
 <p>The app <b>implements most common Ionic/Angular2 patterns (Pages, Compoments, Services, etc)</b> and presents a UI
 designed with regular Ionic <b>UI components (Tabs, Swiping Lists, Forms, Alerts, ActionSheets, Toasts)</b>. 
 </p>
